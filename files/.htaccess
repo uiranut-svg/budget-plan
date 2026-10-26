@@ -1,0 +1,14 @@
+# เปิดได้เฉพาะไฟล์ PDF — ไม่รันสคริปต์ในโฟลเดอร์อัปโหลด
+Options -Indexes -ExecCGI
+<FilesMatch "\.(?i:php\d?|phtml|phar|pl|py|cgi|sh|shtml|htaccess)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options nosniff
+</IfModule>

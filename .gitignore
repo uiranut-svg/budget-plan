@@ -1,0 +1,4 @@
+inc/config.php
+inc/setup.allow
+files/books/*
+!files/books/.keep
