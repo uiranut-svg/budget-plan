@@ -212,5 +212,5 @@ foreach ($cmp as $name => $vals) {
 echo bp_json(array('share' => $share, 'cmp' => $cmpJs, 'pdfjs' => bp_url('assets/vendor/pdf.min.js'), 'worker' => bp_url('assets/vendor/pdf.worker.min.js')));
 ?>;
 </script>
-<script src="<?php echo h(bp_url('assets/js/app.js')); ?>?v=1"></script>
+<script src="<?php echo h(bp_url('assets/js/app.js')); ?>?v=2"></script>
 <?php bp_foot(); ?>

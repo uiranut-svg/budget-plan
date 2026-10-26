@@ -51,7 +51,7 @@
           labels: c.series.map(function (x) { return x.name; }),
           datasets: c.years.map(function (y, i) {
             var a = 0.35 + 0.65 * (i + 1) / c.years.length;
-            return { label: 'ปี ' + y, data: c.series.map(function (x) { return x.values[i]; }), backgroundColor: 'rgba(37,99,235,' + a.toFixed(2) + ')', borderRadius: 4 };
+            return { label: 'ปี ' + y, data: c.series.map(function (x) { return x.values[i]; }), backgroundColor: 'rgba(179,20,27,' + a.toFixed(2) + ')', borderRadius: 4 };
           })
         },
         options: {

@@ -1,6 +1,6 @@
 (function () {
   'use strict';
-  var PAL = ['#2563eb', '#16a34a', '#f59e0b', '#dc2626', '#7c3aed', '#0891b2', '#db2777', '#65a30d', '#ea580c', '#475569'];
+  var PAL = ['#b3141b', '#1f3a68', '#c9a227', '#2f7d4f', '#7a4a9e', '#0e7490', '#d9480f', '#6b5b4e', '#e05a6a', '#475569'];
   var box = document.getElementById('cats');
   var dirty = false;
   var num = function (s) { s = String(s == null ? '' : s).replace(/[^0-9.\-]/g, ''); var v = parseFloat(s); return isNaN(v) ? 0 : Math.round(v * 100) / 100; };

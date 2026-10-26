@@ -91,4 +91,4 @@ admin_head('ปีงบประมาณ ' . $y['year'], 'index');
   </div>
 </form>
 <datalist id="deps"><?php foreach ($deps as $d) echo '<option value="' . h($d) . '">'; ?></datalist>
-<?php admin_foot('<script>window.ED=' . bp_json(array('cats' => $init)) . ';</script><script src="' . h(bp_url('assets/js/editor.js')) . '?v=1"></script>'); ?>
+<?php admin_foot('<script>window.ED=' . bp_json(array('cats' => $init)) . ';</script><script src="' . h(bp_url('assets/js/editor.js')) . '?v=2"></script>'); ?>
