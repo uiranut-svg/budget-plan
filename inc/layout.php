@@ -8,7 +8,7 @@ function bp_head($title, $extraHead = '')
         . '<title>' . h($title !== '' ? $title . ' · ' . $site : $site) . '</title>'
         . '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
         . '<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">'
-        . '<link rel="stylesheet" href="' . h(bp_url('assets/css/app.css')) . '?v=2">' . $extraHead . '</head><body>'
+        . '<link rel="stylesheet" href="' . h(bp_url('assets/css/app.css')) . '?v=3">' . $extraHead . '</head><body>'
         . '<header class="topbar"><div class="wrap topbar-in">'
         . '<a class="brand" href="' . h(bp_url('index.php')) . '"><span class="brand-mark" aria-hidden="true">฿</span><span><b>' . h($site) . '</b>'
         . ($school !== '' ? '<small>' . h($school) . '</small>' : '') . '</span></a>'
@@ -23,5 +23,6 @@ function bp_foot()
     echo '<footer class="footer"><div class="wrap">'
         . ($unit !== '' ? '<b>' . h($unit) . '</b> ' : '') . h(bp_setting('school_name'))
         . ($contact !== '' ? '<div class="footer-contact">' . nl2br(h($contact)) . '</div>' : '')
+        . '<div class="footer-admin"><a href="' . h(bp_url('admin/login.php')) . '">สำหรับเจ้าหน้าที่</a></div>'
         . '</div></footer></body></html>';
 }

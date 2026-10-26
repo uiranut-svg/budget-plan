@@ -11,7 +11,7 @@ function admin_head($title, $active = '')
         . '<meta name="csrf" content="' . h(bp_csrf_token()) . '">'
         . '<title>' . h($title) . ' · ผู้ดูแลระบบ</title>'
         . '<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">'
-        . '<link rel="stylesheet" href="' . h(bp_url('assets/css/app.css')) . '?v=2"></head><body class="admin">'
+        . '<link rel="stylesheet" href="' . h(bp_url('assets/css/app.css')) . '?v=3"></head><body class="admin">'
         . '<header class="topbar"><div class="wrap topbar-in">'
         . '<a class="brand" href="' . h(bp_url('admin/index.php')) . '"><span class="brand-mark" aria-hidden="true">฿</span><span><b>' . h(bp_site_name()) . '</b><small>ผู้ดูแลระบบ</small></span></a>'
         . '<nav class="topnav">';
