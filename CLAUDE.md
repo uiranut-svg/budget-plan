@@ -39,7 +39,7 @@
 - ล็อกอินผิด 5 ครั้ง/15 นาที/IP = พัก (`login_fail`)
 - ตาราง (prefix `bp_`): `setting` · `user` (role) · `user_unit` · `login_fail` · `log` · `year` · `category` · `item` · `book` · `unit` (parent_id — ฝ่าย→งาน) · `fund` (year_id, parent_id, estimate, carry_in, received) · `project` (code, unit_id, fund_id, expense ข้อความ, requested/approved/spent, spent_q1..q4, status plan|doing|done|reserve|cancel, quarters "1,2", owner, objective, target, result, result_pct, problems) · `project_file` (kind photo|doc) · `project_align` · `align` (parent_id NULL=ชุด) · `procure` (seq, project_id, method, budget, ref_price, plan_month YYYY-MM, bidders, vendor, contract_amount, contract_no, contract_date, reason, status plan|doing|done|cancel) · `report` (year_id+period 6|12 unique, summary, problems, suggestions, published) · `transfer` (year_id, from_id, to_id, amount, doc_no, doc_date, reason, username)
 - ลบปี (admin/index.php) ลบทุกตารางของปีนั้น รวมไฟล์รูป/เอกสารโครงการ — เพิ่มตารางรายปีใหม่ต้องเพิ่มที่นี่ด้วย
-- รุ่นโค้ด: ไฟล์ `VERSION` (YYYYNNNN แบบ SAM, ตอนนี้ 20260004)
+- รุ่นโค้ด: ไฟล์ `VERSION` (YYYYNNNN แบบ SAM, ตอนนี้ 20260000 — ผู้ใช้สั่งเริ่มนับใหม่ 2026-10-27 (ยังไม่ได้ติดตั้งที่ไหน, ลบ tag v20260003/v20260004 แล้ว, ยังไม่มี tag))
 
 ## เครื่องพัฒนา
 - http://localhost/budget-plan/ · DB `budget_plan` · ข้อมูลตัวอย่าง 2567–2569 = ตัวเลขจาก sbt + รายการย่อยสมมติปี 2569 + แหล่งเงินทั้ง 3 ปี/หน่วยงาน/ความสอดคล้อง/โครงการ 19 โครงการ (มีเบิกจ่ายรายไตรมาส + ผล) /จัดซื้อ 12 รายการ ปี 2569 (จาก seeder ของ vec.plan) · เล่มทดสอบ = คู่มือ SAM
