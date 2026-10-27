@@ -136,7 +136,10 @@ function bp_excel_norm($s)
 function bp_excel_hnorm($s)
 {
     $n = bp_excel_norm($s);
-    $n = preg_replace('/\((หน่วย:?)?บาท\)|บาท$|\(%\)$/u', '', $n);
+    // ตัดหน่วย (บาท) และวงเล็บคำอธิบายท้ายหัว เช่น "กำหนดเวลา (เดือน/ปี)" "ราคากลาง (ราคาอ้างอิง)"
+    $n = preg_replace('/\((หน่วย:?)?บาท\)|บาท$/u', '', $n);
+    $n2 = preg_replace('/(\([^()]*\))+$/u', '', $n);
+    return $n2 !== '' ? $n2 : $n;
     return $n;
 }
 function bp_excel_num($v)
@@ -187,7 +190,8 @@ function bp_excel_head_lookup($sheetKey)
     $H = bp_excel_heads();
     $A = bp_excel_aliases();
     $heads = isset($H[$sheetKey]) ? $H[$sheetKey] : array();
-    if ($sheetKey == 'จัดซื้อจัดจ้าง') { $heads[] = 'ชื่อโครงการ'; $heads[] = 'หมายเหตุ'; }
+    if ($sheetKey == 'จัดซื้อจัดจ้าง') { $heads[] = 'ชื่อโครงการ'; $heads[] = 'หมายเหตุ'; $heads[] = 'แหล่งเงิน'; } // แหล่งเงินของรายการจัดซื้อมาจากโครงการ — รู้จักแต่ไม่ใช้
+    if ($sheetKey == 'โครงการ') $heads[] = 'หมายเหตุ';
     $look = array();
     foreach ($heads as $h) $look[bp_excel_hnorm($h)] = $h;
     if (isset($A[$sheetKey])) foreach ($A[$sheetKey] as $h => $list) foreach ($list as $a) if (!isset($look[bp_excel_hnorm($a)])) $look[bp_excel_hnorm($a)] = $h;
@@ -212,25 +216,29 @@ function bp_excel_table($sheet, $sheetKey, $fundKeys = array())
             $top = $sheet[$r];
             $sub = $two ? $sheet[$r + 1] : array();
             $w = max(count($top), count($sub));
-            $pos = array(); $qc = array(); $fc = array();
+            $pos = array(); $qc = array(); $fc = array(); $unused = array();
             $last = '';
             for ($c = 0; $c < $w; $c++) {
                 $t = isset($top[$c]) ? trim($top[$c]) : '';
                 $s = isset($sub[$c]) ? trim($sub[$c]) : '';
                 if ($t !== '') $last = $t; elseif ($s !== '') $t = $last; // หัวบนที่ผสานเซลล์
                 $cands = $s !== '' ? array($t . $s, $s) : array($t);
+                $hit = false;
                 foreach ($cands as $txt) {
                     if ($txt === '') continue;
                     $k = bp_excel_hnorm($txt);
-                    if (isset($look[$k]) && !isset($pos[$look[$k]])) { $pos[$look[$k]] = $c; break; }
+                    if (isset($look[$k]) && !isset($pos[$look[$k]])) { $pos[$look[$k]] = $c; $hit = true; break; }
                     $q = bp_excel_quarter_head($txt);
-                    if ($q && $txt === $s || $q && !$two) { $qc[$c] = $q; break; }
-                    if ($fundKeys) { $fid = bp_excel_fuzzy(bp_excel_fund_key($txt), $fundKeys); if ($fid && ($txt === $s || !$two)) { $fc[$c] = $fid; break; } }
+                    if ($q && $txt === $s || $q && !$two) { $qc[$c] = $q; $hit = true; break; }
+                    if ($fundKeys) { $fid = bp_excel_fuzzy(bp_excel_fund_key($txt), $fundKeys); if ($fid && ($txt === $s || !$two)) { $fc[$c] = $fid; $hit = true; break; } }
                 }
+                // หัวที่ไม่รู้จัก (ไว้แจ้งผู้ใช้) — ไม่นับคอลัมน์ลำดับ
+                $lbl = $s !== '' ? $s : $t;
+                if (!$hit && $lbl !== '' && !in_array(bp_excel_norm($lbl), array('ที่', 'ลำดับ', 'ลำดับที่', 'no', 'no.'), true)) $unused[$c] = $lbl;
             }
             if (!isset($pos[$need])) continue;
             $score = count($pos) + count($qc) + count($fc);
-            if (!$best || $score > $best['score']) $best = array('score' => $score, 'pos' => $pos, 'q' => $qc, 'fund' => $fc, 'start' => $r + ($two ? 2 : 1));
+            if (!$best || $score > $best['score']) $best = array('score' => $score, 'pos' => $pos, 'q' => $qc, 'fund' => $fc, 'start' => $r + ($two ? 2 : 1), 'unused' => array_values(array_unique($unused)));
         }
     }
     // คอลัมน์ไตรมาสต้องมีอย่างน้อย 2 ช่องถึงจะเชื่อ (กันหัวคอลัมน์บังเอิญเป็นชื่อเดือน)
@@ -319,6 +327,7 @@ function bp_excel_import($yid, $year, $book, $opts)
     // แหล่งเงินต้องเข้าก่อนโครงการ (โครงการอ้างชื่อแหล่งเงิน) — หาแผ่นแหล่งเงินก่อน แล้วหาแผ่นอื่นพร้อมกัน
     $pick = bp_excel_pick($book, $want, $fundKeys);
     foreach ($want as $k) if (!isset($pick[$k])) $msg[] = '!' . $k . ': ไม่พบแผ่นงานที่มีหัวตารางของ' . $k . ' — ข้าม';
+    $skipCols = function ($t) { return !empty($t['unused']) ? ' — คอลัมน์ที่ระบบไม่รู้จัก (ไม่ได้นำเข้า): ' . implode(', ', array_map(function ($x) { return '"' . $x . '"'; }, $t['unused'])) : ''; };
     $from = function ($k) use ($pick) { return $pick[$k][0] === $k ? '' : ' (จากแผ่น "' . $pick[$k][0] . '")'; };
 
     // ---------- งบตามหมวด: แทนที่ทั้งหมด ----------
@@ -476,7 +485,7 @@ function bp_excel_import($yid, $year, $book, $opts)
             if ($r['_q']) { ksort($r['_q']); $set[] = 'quarters=' . q(implode(',', $r['_q'])); }
             elseif ($r['ไตรมาสที่ดำเนินการ'] !== null) { $qs = array(); foreach (preg_split('/[^1-4]+/', $r['ไตรมาสที่ดำเนินการ']) as $x) if ($x !== '') $qs[(int)$x] = (int)$x; ksort($qs); $set[] = 'quarters=' . q(implode(',', $qs)); }
             if ($r['ผลสำเร็จ (%)'] !== null) $set[] = 'result_pct=' . ($r['ผลสำเร็จ (%)'] === '' ? 'NULL' : max(0, min(100, (int)round((float)$r['ผลสำเร็จ (%)']))));
-            foreach (array('ผู้รับผิดชอบ' => array('owner', 255), 'ผลการดำเนินงาน' => array('result', 5000), 'ปัญหาอุปสรรค' => array('problems', 5000), 'วัตถุประสงค์' => array('objective', 5000), 'เป้าหมาย' => array('target', 5000)) as $h => $c)
+            foreach (array('ผู้รับผิดชอบ' => array('owner', 255), 'ผลการดำเนินงาน' => array('result', 5000), 'ปัญหาอุปสรรค' => array('problems', 5000), 'วัตถุประสงค์' => array('objective', 5000), 'เป้าหมาย' => array('target', 5000), 'หมายเหตุ' => array('note', 500)) as $h => $c)
                 if ($r[$h] !== null) $set[] = $c[0] . '=' . q(mb_substr($r[$h], 0, $c[1]));
             if ($id) { bp_query('UPDATE ' . bp_t('project') . ' SET ' . implode(',', $set) . ' WHERE id=' . $id); $upd++; }
             else {
@@ -488,7 +497,7 @@ function bp_excel_import($yid, $year, $book, $opts)
         }
         $msg[] = 'โครงการ' . $from('โครงการ') . ': เพิ่ม ' . $add . ' · ปรับปรุง ' . $upd . ' โครงการ' . ($sec ? ' (ข้ามแถวหัวข้อ ' . $sec . ' แถว)' : '')
             . ($multi ? ' — ' . $multi . ' โครงการใช้เงินหลายแหล่ง: บันทึกแหล่งที่ใช้มากที่สุด (ตรวจที่แท็บโครงการ)' : '')
-            . ($warn ? ' — ไม่พบ ' . implode(', ', array_keys($warn)) . ' (ข้ามค่านั้น แก้ทีละโครงการได้)' : '');
+            . ($warn ? ' — ไม่พบ ' . implode(', ', array_keys($warn)) . ' (ข้ามค่านั้น แก้ทีละโครงการได้)' : '') . $skipCols($t);
     }
 
     // ---------- จัดซื้อจัดจ้าง: อัปเดตตามลำดับ / เพิ่มใหม่ ----------
@@ -527,7 +536,7 @@ function bp_excel_import($yid, $year, $book, $opts)
             if (isset($seqs[$seq])) { bp_query('UPDATE ' . bp_t('procure') . ' SET ' . implode(',', $set) . ' WHERE id=' . $seqs[$seq]); $upd++; }
             else { bp_query('INSERT INTO ' . bp_t('procure') . ' SET year_id=' . (int)$yid . ',' . implode(',', $set)); $seqs[$seq] = bp_insert_id(); $add++; }
         }
-        $msg[] = 'จัดซื้อจัดจ้าง' . $from('จัดซื้อจัดจ้าง') . ': เพิ่ม ' . $add . ' · ปรับปรุง ' . $upd . ' รายการ' . ($nolink ? ' — ' . $nolink . ' รายการหาโครงการที่ตรงชื่อไม่เจอ (ไม่ได้ผูกโครงการ)' : '');
+        $msg[] = 'จัดซื้อจัดจ้าง' . $from('จัดซื้อจัดจ้าง') . ': เพิ่ม ' . $add . ' · ปรับปรุง ' . $upd . ' รายการ' . ($nolink ? ' — ' . $nolink . ' รายการหาโครงการที่ตรงชื่อไม่เจอ (ไม่ได้ผูกโครงการ)' : '') . $skipCols($pick['จัดซื้อจัดจ้าง'][1]);
     }
     bp_query('UPDATE ' . bp_t('year') . " SET updated_at='" . $now . "' WHERE id=" . (int)$yid);
     return $msg;

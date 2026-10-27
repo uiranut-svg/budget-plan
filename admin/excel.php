@@ -39,8 +39,9 @@ admin_year_tabs($y, 'excel');
   <form class="panel" method="post" enctype="multipart/form-data">
     <?php echo bp_csrf_field(); ?>
     <h2>นำเข้าจาก Excel</h2>
-    <p class="small">อัปโหลดไฟล์แผนจาก Excel แทนการพิมพ์ทีละโครงการ — ใช้<b>ไฟล์แผนปฏิบัติการที่วิทยาลัยมีอยู่แล้ว</b>ได้เลย
-      (<a href="<?php echo h(bp_url('samples/sample-plan-2570.xlsx')); ?>">ดูไฟล์ตัวอย่าง</a>) หรือไฟล์ที่ดาวน์โหลดจากกล่องซ้ายแล้วแก้ใน Excel</p>
+    <p class="small">อัปโหลดไฟล์แผนจาก Excel แทนการพิมพ์ทีละโครงการ — ใช้<b>ไฟล์แผนปฏิบัติการที่วิทยาลัยมีอยู่แล้ว</b>ได้เลย หรือเริ่มจากแม่แบบเปล่าด้านล่าง</p>
+    <p><a class="btn btn-ghost btn-sm" href="<?php echo h(bp_url('samples/template-plan.xlsx')); ?>">ดาวน์โหลดแม่แบบเปล่า (.xlsx)</a>
+      <span class="muted small">มีแค่หัวตาราง กรอกแล้วนำเข้าได้ทันที · <a href="<?php echo h(bp_url('samples/sample-plan-2570.xlsx')); ?>">ดูตัวอย่างที่กรอกแล้ว</a></span></p>
     <label class="fld"><span><b>1.</b> เลือกไฟล์ .xlsx</span><input type="file" name="xlsx" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required></label>
     <div class="fld"><span><b>2.</b> ติ๊กเลือกข้อมูลที่จะนำเข้าจากไฟล์</span>
       <label class="chk d-block"><input type="checkbox" name="projects" value="1" checked><span><b>โครงการ</b><small class="muted d-block">เพิ่มโครงการใหม่ และอัปเดตโครงการที่มีอยู่แล้ว (ดูจากรหัสหรือชื่อโครงการ) · โครงการที่ไม่มีในไฟล์ยังอยู่เหมือนเดิม</small></span></label>
@@ -48,7 +49,7 @@ admin_year_tabs($y, 'excel');
       <label class="chk d-block"><input type="checkbox" name="funds" value="1"><span><b>แหล่งเงิน (ประมาณการรายรับ)</b><small class="muted d-block">ติ๊กเมื่อไฟล์มีแผ่นประมาณการรายรับ · ปรับยอดตามชื่อแหล่งเงิน ไม่ลบของเดิม</small></span></label>
       <label class="chk d-block"><input type="checkbox" name="budget" value="1"><span><b>งบตามหมวด</b><small class="text-err d-block">ระวัง: ลบหมวดและรายการเดิมของปีนี้ทั้งหมด แล้วใส่ตามไฟล์แทน</small></span></label>
     </div>
-    <p class="small"><b>3.</b> กด <b>นำเข้า</b> — ระบบแจ้งผลว่าเพิ่ม/อัปเดตกี่รายการ และบอกชื่อหน่วยงานหรือแหล่งเงินในไฟล์ที่หาไม่เจอ (แก้ทีหลังได้)</p>
+    <p class="small"><b>3.</b> กด <b>นำเข้า</b> — ระบบแจ้งผลว่าเพิ่ม/อัปเดตกี่รายการ บอกชื่อหน่วยงานหรือแหล่งเงินที่หาไม่เจอ และ<b>คอลัมน์ที่ระบบไม่รู้จัก</b> (ถ้ามี ให้แก้ชื่อหัวคอลัมน์ให้ตรงกับแม่แบบแล้วนำเข้าซ้ำได้)</p>
     <p class="muted small">ก่อนนำเข้าครั้งใหญ่ ควรกด <a href="backup.php">สำรองข้อมูล</a> ไว้ก่อน ถ้าผลไม่ถูกต้องกู้คืนได้ · ชื่อหน่วยงานในไฟล์ต้องมีอยู่ในเมนู หน่วยงาน ก่อน</p>
     <p><button class="btn" type="submit">นำเข้า</button></p>
   </form>
