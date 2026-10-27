@@ -195,4 +195,19 @@ return array(
         `unit_id` int(11) NOT NULL,
         PRIMARY KEY (`user_id`,`unit_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+    // ปรับแผน / โอนงบระหว่างโครงการ (from/to ว่าง = เงินเหลือจ่ายหรืองบที่ยังไม่จัดสรร)
+    "CREATE TABLE IF NOT EXISTS `{p}transfer` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `year_id` int(11) NOT NULL,
+        `from_id` int(11) DEFAULT NULL,
+        `to_id` int(11) DEFAULT NULL,
+        `amount` decimal(15,2) NOT NULL DEFAULT 0,
+        `doc_no` varchar(100) NOT NULL DEFAULT '',
+        `doc_date` date DEFAULT NULL,
+        `reason` varchar(500) NOT NULL DEFAULT '',
+        `username` varchar(64) NOT NULL DEFAULT '',
+        `created_at` datetime DEFAULT NULL,
+        PRIMARY KEY (`id`),
+        KEY `year_id` (`year_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
 );

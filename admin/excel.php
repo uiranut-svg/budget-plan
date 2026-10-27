@@ -17,11 +17,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         try {
             $book = BpXlsx::read($f['tmp_name']);
             $msg = bp_excel_import($yid, $y['year'], $book, $opts);
-            $miss = array();
-            $names = array('budget' => 'งบตามหมวด', 'funds' => 'แหล่งเงิน', 'projects' => 'โครงการ', 'procure' => 'จัดซื้อจัดจ้าง');
-            foreach ($opts as $k => $on) if ($on && !isset($book[$names[$k]])) $miss[] = $names[$k];
-            if ($miss) $msg[] = 'ไม่พบแผ่นงาน: ' . implode(', ', $miss) . ' (ชื่อแผ่นงานต้องตรงกับแม่แบบ)';
-            bp_done('excel.import', 'นำเข้า Excel ปี ' . $y['year'] . "\n" . implode("\n", $msg), $miss ? 'err' : 'ok');
+            $bad = 0;
+            foreach ($msg as $i => $m) if (substr($m, 0, 1) === '!') { $msg[$i] = substr($m, 1); $bad++; }
+            bp_done('excel.import', 'นำเข้า Excel ปี ' . $y['year'] . "\n" . implode("\n", $msg), $bad && $bad == count($msg) ? 'err' : 'ok');
         } catch (Exception $e) {
             bp_flash('อ่านไฟล์ไม่ได้: ' . $e->getMessage() . ' — ใช้ไฟล์ .xlsx (Excel 2007 ขึ้นไป) ไม่ใช่ .xls หรือ .csv', 'err');
         }
@@ -41,17 +39,15 @@ admin_year_tabs($y, 'excel');
   <form class="panel" method="post" enctype="multipart/form-data">
     <?php echo bp_csrf_field(); ?>
     <h2>นำเข้าจาก Excel</h2>
-    <ol class="small steps">
-      <li>กด <b>ดาวน์โหลด</b> ทางซ้ายเพื่อได้แม่แบบ (มีข้อมูลปัจจุบันอยู่แล้ว)</li>
-      <li>แก้/เพิ่มแถวใน Excel — <b>อย่าเปลี่ยนชื่อแผ่นงานและหัวคอลัมน์แถวแรก</b></li>
-      <li>เลือกไฟล์ แล้วติ๊กแผ่นงานที่จะนำเข้า</li>
-    </ol>
+    <p class="small">ใช้ได้ทั้ง<b>ไฟล์ที่ดาวน์โหลดจากทางซ้าย</b> และ<b>ไฟล์แผนปฏิบัติการ/แผนจัดซื้อจัดจ้างที่วิทยาลัยทำไว้เอง</b> — ระบบหาแถวหัวตารางให้เอง (หัวตาราง 2 ชั้นได้), ข้ามแถวชื่อฝ่ายและแถว "รวม",
+      อ่านเครื่องหมาย ✓ ในช่องไตรมาส/เดือน และงบที่แยกคอลัมน์ตามแหล่งเงิน</p>
+    <p class="small">ดูตัวอย่างไฟล์แบบที่อ่านได้: <a href="<?php echo h(bp_url('samples/sample-plan-2570.xlsx')); ?>">ไฟล์แผนปฏิบัติการตัวอย่าง (.xlsx)</a> <span class="muted">(ข้อมูลสมมติ)</span></p>
     <label class="fld"><span>ไฟล์ .xlsx</span><input type="file" name="xlsx" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required></label>
     <label class="chk d-block"><input type="checkbox" name="projects" value="1" checked> <b>โครงการ</b> — รหัสตรงกับของเดิม = อัปเดต · รหัสใหม่ = เพิ่ม (ไม่ลบโครงการที่ไม่มีในไฟล์)</label>
     <label class="chk d-block"><input type="checkbox" name="procure" value="1" checked> <b>จัดซื้อจัดจ้าง</b> — ลำดับตรงกับของเดิม = อัปเดต</label>
     <label class="chk d-block"><input type="checkbox" name="funds" value="1"> <b>แหล่งเงิน</b> — อัปเดตยอดตามชื่อ / เพิ่มแหล่งใหม่ (ไม่ลบ)</label>
     <label class="chk d-block"><input type="checkbox" name="budget" value="1"> <b>งบตามหมวด</b> — <span class="text-err">แทนที่หมวดและรายการทั้งหมดของปีนี้</span></label>
-    <p class="muted small">แนะนำให้ <a href="backup.php">สำรองข้อมูล</a> ก่อนนำเข้าครั้งใหญ่ · หน่วยงาน/แหล่งเงินในไฟล์ต้องสะกดตรงกับที่ตั้งไว้</p>
+    <p class="muted small">แนะนำให้ <a href="backup.php">สำรองข้อมูล</a> ก่อนนำเข้าครั้งใหญ่ · ติ๊ก <b>แหล่งเงิน</b> ด้วยถ้าไฟล์มีแผ่นประมาณการรายรับ · โครงการที่ชื่อตรงกับของเดิม = อัปเดต (ไม่สร้างซ้ำ) · ชื่อหน่วยงาน/แหล่งเงินที่ระบบหาไม่เจอจะแจ้งให้ทราบ</p>
     <p><button class="btn" type="submit">นำเข้า</button></p>
   </form>
 </div>

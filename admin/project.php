@@ -58,6 +58,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 if (!@move_uploaded_file($up['tmp_name'], $fileDir . $name)) bp_flash('บันทึกไฟล์ไม่ได้ — ให้สิทธิ์เขียนโฟลเดอร์ files/projects/ แก่เว็บเซิร์ฟเวอร์', 'err');
                 else {
                     @chmod($fileDir . $name, 0644);
+                    // รูป: ย่อด้านยาวเหลือ 1920px + ลบข้อมูล EXIF/พิกัด GPS (png ทึบที่ใหญ่ → jpg)
+                    if ($kind == 'photo') {
+                        $ne = bp_image_shrink($fileDir . $name, $ext);
+                        if ($ne !== '' && $ne !== $ext) { $nn = substr($name, 0, 24) . '.' . $ne; if (@rename($fileDir . $name, $fileDir . $nn)) { $name = $nn; $ext = $ne; } }
+                        clearstatcache();
+                    }
                     $orig = preg_replace('/[\\\\\/:*?"<>|\r\n]+/u', '_', basename((string)$up['name']));
                     $title = trim(isset($f['title']) ? (string)$f['title'] : '');
                     bp_query('INSERT INTO ' . bp_t('project_file') . ' (project_id,kind,file,orig_name,title,size,created_at) VALUES (' . $pid . ',' . q($kind) . ',' . q($name) . ','
@@ -233,7 +239,7 @@ $ro = $isAdmin ? '' : ' disabled';
 <?php if ($pid) { ?>
 <div class="panel" id="files">
   <h3>รูปกิจกรรม / เอกสารโครงการ</h3>
-  <p class="muted small">แสดงบนหน้ารายละเอียดโครงการให้คนทั่วไปเห็น · รับรูป (jpg, png, webp, gif) และ PDF ไม่เกิน <?php echo bp_human_size(min(bp_max_upload(), 15 * 1048576)); ?> ต่อไฟล์ · ระวังอย่าใส่เอกสารที่มีข้อมูลส่วนบุคคล</p>
+  <p class="muted small">แสดงบนหน้ารายละเอียดโครงการให้คนทั่วไปเห็น · รับรูป (jpg, png, webp, gif) และ PDF ไม่เกิน <?php echo bp_human_size(min(bp_max_upload(), 15 * 1048576)); ?> ต่อไฟล์ · รูปจากมือถือย่อขนาดให้อัตโนมัติ (และลบพิกัดสถานที่ถ่ายออก) · ระวังอย่าใส่เอกสารที่มีข้อมูลส่วนบุคคล</p>
   <?php if ($files) { ?>
   <div class="pf-grid">
     <?php foreach ($files as $fl) { $url = bp_url('files/projects/' . $fl['file']); ?>

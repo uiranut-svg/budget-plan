@@ -15,7 +15,7 @@ function admin_head($title, $active = '')
         . '<meta name="csrf" content="' . h(bp_csrf_token()) . '">'
         . '<title>' . h($title) . ' · ผู้ดูแลระบบ</title>'
         . '<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">'
-        . '<link rel="stylesheet" href="' . h(bp_url('assets/css/app.css')) . '?v=9"></head><body class="admin">'
+        . '<link rel="stylesheet" href="' . h(bp_url('assets/css/app.css')) . '?v=11"></head><body class="admin">'
         . '<header class="topbar"><div class="wrap topbar-in">'
         . '<a class="brand" href="' . h(bp_url(bp_is_admin() ? 'admin/index.php' : 'admin/my.php')) . '"><span class="brand-mark" aria-hidden="true">฿</span><span><b>' . h(bp_site_name()) . '</b><small>'
         . (bp_is_admin() ? 'ผู้ดูแลระบบ' : 'ผู้กรอกข้อมูลหน่วยงาน') . '</small></span></a>'
@@ -39,6 +39,7 @@ function admin_year_tabs($y, $active)
         'year' => array('year.php?id=' . $id, 'งบตามหมวด'),
         'funds' => array('funds.php?id=' . $id, 'แหล่งเงิน'),
         'projects' => array('projects.php?id=' . $id, 'โครงการ'),
+        'transfer' => array('transfer.php?id=' . $id, 'ปรับแผน / โอนงบ'),
         'procure' => array('procure.php?id=' . $id, 'จัดซื้อจัดจ้าง'),
         'align' => array('align.php?id=' . $id, 'ความสอดคล้อง'),
         'reports' => array('reports.php?id=' . $id, 'รายงาน 6/12 เดือน'),
@@ -46,7 +47,8 @@ function admin_year_tabs($y, $active)
     );
     echo '<div class="seg admin-tabs">';
     foreach ($tabs as $k => $t) echo '<a class="seg-btn' . ($k == $active ? ' on' : '') . '" href="' . h($t[0]) . '">' . $t[1] . '</a>';
-    echo '<a class="seg-btn" href="' . h(bp_url('index.php?y=' . (int)$y['year'])) . '" target="_blank" rel="noopener">ดูหน้าเว็บปี ' . (int)$y['year'] . ' ↗</a></div>';
+    echo '<a class="seg-btn" href="' . h(bp_url('index.php?y=' . (int)$y['year'])) . '" target="_blank" rel="noopener">ดูหน้าเว็บปี ' . (int)$y['year'] . ' ↗</a>'
+        . '<a class="seg-btn" href="' . h(bp_url('ita.php?y=' . (int)$y['year'])) . '" target="_blank" rel="noopener">ลิงก์ ITA ↗</a></div>';
     $w = bp_checks($id);
     if ($w) {
         echo '<details class="checks"' . (count($w) <= 3 ? ' open' : '') . '><summary>⚠ พบจุดที่ควรตรวจสอบ ' . count($w) . ' รายการ</summary><ul>';

@@ -371,3 +371,20 @@ body.reader { height: 100vh; height: 100dvh; display: flex; flex-direction: colu
 }
 .hero-back { color: #fff; opacity: .85; } .hero-back:hover { opacity: 1; }
 .doc-list { margin: 0; padding-left: 4px; list-style: none; } .doc-list li { padding: 6px 0; border-bottom: 1px dashed var(--line); } .doc-list li:last-child { border-bottom: 0; }
+/* หน้าลิงก์ ITA */
+.tbl.ita td { vertical-align: top; }
+.ita-link a { word-break: break-all; font-size: .88rem; }
+.ita-link .btn { margin-left: 6px; vertical-align: middle; }
+@media (max-width: 640px) { .ita-link .btn { display: block; margin: 6px 0 0; } }
+@media print { .tbl.ita a { color: #000; text-decoration: none; } }
+/* การปรับแผน/โอนงบ */
+.tf-list { list-style: none; margin: 0; padding: 0; }
+.tf-list li { padding: 8px 0; border-bottom: 1px solid var(--line); }
+.tf-list li:last-child { border-bottom: 0; }
+@media (max-width: 640px) {
+  .tbl.ita thead { display: none; }
+  .tbl.ita, .tbl.ita tbody, .tbl.ita tr, .tbl.ita td { display: block; width: auto; }
+  .tbl.ita tr { border-bottom: 1px solid var(--line); padding: 8px 0; }
+  .tbl.ita td { border: 0; padding: 3px 14px; }
+  .tbl.ita td.muted:first-child { display: none; }
+}

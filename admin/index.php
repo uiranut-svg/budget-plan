@@ -62,6 +62,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             bp_query('DELETE FROM ' . bp_t('category') . ' WHERE year_id=' . $yid);
             bp_query('UPDATE ' . bp_t('book') . ' SET year_id=NULL WHERE year_id=' . $yid);
             bp_query('DELETE pa FROM ' . bp_t('project_align') . ' pa JOIN ' . bp_t('project') . ' p ON p.id=pa.project_id WHERE p.year_id=' . $yid);
+            // รูป/เอกสารของโครงการในปีนี้ (ลบไฟล์ด้วย)
+            foreach (bp_rows('SELECT f.id, f.file FROM ' . bp_t('project_file') . ' f JOIN ' . bp_t('project') . ' p ON p.id=f.project_id WHERE p.year_id=' . $yid) as $fr) {
+                if (preg_match('/^[0-9a-f]{24}\.(jpg|png|gif|webp|pdf)$/', $fr['file'])) @unlink(BP_ROOT . '/files/projects/' . $fr['file']);
+                bp_query('DELETE FROM ' . bp_t('project_file') . ' WHERE id=' . (int)$fr['id']);
+            }
+            bp_query('DELETE FROM ' . bp_t('procure') . ' WHERE year_id=' . $yid);
+            bp_query('DELETE FROM ' . bp_t('report') . ' WHERE year_id=' . $yid);
+            bp_query('DELETE FROM ' . bp_t('transfer') . ' WHERE year_id=' . $yid);
             bp_query('DELETE FROM ' . bp_t('project') . ' WHERE year_id=' . $yid);
             bp_query('DELETE FROM ' . bp_t('fund') . ' WHERE year_id=' . $yid);
             bp_query('DELETE FROM ' . bp_t('align') . ' WHERE year_id=' . $yid);

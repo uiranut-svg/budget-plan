@@ -33,6 +33,10 @@ $tq = $target[$lastQ - 1];
 $pct = $pd['approved'] > 0 ? $pd['spent'] * 100 / $pd['approved'] : 0;
 $asof = bp_year_updated($yid);
 $notEnded = $doneQ < $lastQ;
+// การปรับแผน/โอนงบที่อนุมัติภายในรอบ
+$endDate = ((int)$cur['year'] - 543) . ($period == 6 ? '-03-31' : '-09-30');
+$tfs = array();
+foreach (bp_transfers($yid) as $tr) if (!$tr['doc_date'] || $tr['doc_date'] <= $endDate) $tfs[] = $tr;
 ?>
 <section class="hero slim no-print">
   <div class="wrap">
@@ -147,8 +151,27 @@ $notEnded = $doneQ < $lastQ;
     </div>
   </section>
 
+  <section class="section" id="transfers">
+    <h3 class="rp-h">5. การปรับแผนและโอนเปลี่ยนแปลงงบประมาณ</h3>
+    <?php if (!$tfs) { ?><div class="panel"><p class="muted" style="margin:0">ไม่มีการปรับแผนหรือโอนเปลี่ยนแปลงงบประมาณระหว่างโครงการในรอบนี้</p></div>
+    <?php } else { $tsum = 0; ?>
+    <div class="panel flush scroll-x">
+      <table class="tbl">
+        <thead><tr><th>วันที่อนุมัติ</th><th>จาก</th><th>ไปยัง</th><th class="num">จำนวนเงิน</th><th>เหตุผล</th></tr></thead>
+        <tbody>
+        <?php foreach ($tfs as $tr) { $tsum += (float)$tr['amount']; ?>
+          <tr><td class="nowrap small"><?php echo h(bp_thai_date($tr['doc_date'])); ?></td><td class="small"><?php echo h(bp_transfer_side($tr, 'from')); ?></td><td class="small"><?php echo h(bp_transfer_side($tr, 'to')); ?></td>
+            <td class="num"><?php echo bp_money($tr['amount']); ?></td><td class="small"><?php echo h($tr['reason']); ?><?php if ($tr['doc_no'] !== '') { ?><span class="muted d-block"><?php echo h($tr['doc_no']); ?></span><?php } ?></td></tr>
+        <?php } ?>
+        </tbody>
+        <tfoot><tr><th colspan="3">รวม <?php echo count($tfs); ?> รายการ</th><th class="num"><?php echo bp_money($tsum); ?></th><th></th></tr></tfoot>
+      </table>
+    </div>
+    <?php } ?>
+  </section>
+
   <section class="section">
-    <h3 class="rp-h">5. สรุปผล ปัญหาอุปสรรค และข้อเสนอแนะ</h3>
+    <h3 class="rp-h">6. สรุปผล ปัญหาอุปสรรค และข้อเสนอแนะ</h3>
     <?php
     $autoProb = array();
     foreach ($pd['projects'] as $p) if (trim((string)$p['problems']) !== '') $autoProb[] = $p['title'] . ': ' . trim($p['problems']);

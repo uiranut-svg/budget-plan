@@ -36,6 +36,9 @@ $spent = (float)$p['spent'];
 $pct = $approved > 0 ? $spent * 100 / $approved : 0;
 $hasQ = (float)$p['spent_q1'] + (float)$p['spent_q2'] + (float)$p['spent_q3'] + (float)$p['spent_q4'] > 0;
 $qsel = array_flip(array_filter(explode(',', (string)$p['quarters'])));
+$tfs = bp_transfers($yid, $id);
+$tfNet = 0;
+foreach ($tfs as $t) $tfNet += ($t['to_id'] == $id ? 1 : -1) * (float)$t['amount'];
 
 $BP_NAV_YEAR = (int)$p['year'];
 $BP_NAV_ON = 'projects';
@@ -51,7 +54,7 @@ bp_head($p['title']);
 </section>
 <main class="wrap main">
   <div class="cards">
-    <div class="card" style="--c:var(--brand-2)"><span class="card-label">งบประมาณที่อนุมัติ</span><span class="card-num sm"><?php echo bp_money($approved); ?></span><span class="card-unit">บาท<?php echo (float)$p['requested'] > 0 ? ' · เสนอ ' . bp_money($p['requested']) : ''; ?></span></div>
+    <div class="card" style="--c:var(--brand-2)"><span class="card-label">งบประมาณที่อนุมัติ</span><span class="card-num sm"><?php echo bp_money($approved); ?></span><span class="card-unit">บาท<?php echo abs($tfNet) >= 0.005 ? ' · งบเดิม ' . bp_money($approved - $tfNet) . ' (ปรับ ' . ($tfNet > 0 ? '+' : '') . bp_money($tfNet) . ')' : ((float)$p['requested'] > 0 ? ' · เสนอ ' . bp_money($p['requested']) : ''); ?></span></div>
     <div class="card" style="--c:var(--ok)"><span class="card-label">เบิกจ่ายแล้ว</span><span class="card-num sm"><?php echo bp_money($spent); ?></span><span class="card-unit"><?php echo number_format($pct, 1); ?>% ของงบอนุมัติ</span><span class="bar"><i style="width:<?php echo min(100, round($pct, 1)); ?>%"></i></span></div>
     <div class="card" style="--c:var(--gold)"><span class="card-label">ผลสำเร็จตามตัวชี้วัด</span><span class="card-num sm"><?php echo $p['result_pct'] === null ? '–' : (int)$p['result_pct'] . '%'; ?></span><span class="card-unit"><?php echo h($st[$p['status']]); ?></span>
       <?php if ($p['result_pct'] !== null) { ?><span class="bar"><i style="width:<?php echo (int)$p['result_pct']; ?>%"></i></span><?php } ?></div>
@@ -106,6 +109,18 @@ bp_head($p['title']);
           <tbody><?php foreach ($procs as $r) { ?><tr><td><?php echo h($r['title']); ?><small class="muted d-block"><?php echo h($r['method']); ?> · <?php echo h($r['status'] == 'done' ? $r['vendor'] : $pst[$r['status']]); ?></small></td>
             <td class="num"><?php echo bp_money($r['budget']); ?></td><td class="num"><?php echo (float)$r['contract_amount'] ? bp_money($r['contract_amount']) : '–'; ?></td></tr><?php } ?></tbody>
         </table>
+      </div>
+      <?php } ?>
+      <?php if ($tfs) { ?>
+      <div class="panel">
+        <h3>การปรับแผน / โอนงบ</h3>
+        <ul class="tf-list">
+          <?php foreach ($tfs as $t) { $in = $t['to_id'] == $id; ?>
+          <li><b class="<?php echo $in ? 'text-ok' : 'text-err'; ?>"><?php echo ($in ? '+' : '−') . bp_money($t['amount']); ?></b> บาท
+            <?php echo $in ? 'รับจาก ' . h(bp_transfer_side($t, 'from')) : 'โอนไป ' . h(bp_transfer_side($t, 'to')); ?>
+            <small class="muted d-block"><?php echo h(bp_thai_date($t['doc_date'])); ?> · <?php echo h($t['reason']); ?><?php echo $t['doc_no'] !== '' ? ' · ' . h($t['doc_no']) : ''; ?></small></li>
+          <?php } ?>
+        </ul>
       </div>
       <?php } ?>
       <?php if ($docs) { ?>
