@@ -8,7 +8,7 @@
  *  เครื่องที่มีโฟลเดอร์ .git (เครื่องพัฒนา) อัปเดตผ่านหน้าเว็บไม่ได้ — ใช้ git แทน
  */
 // แหล่งอัปเดตล็อกไว้ในโค้ด (กันการชี้ไปดึงโค้ดจากที่อื่นผ่านหน้าเว็บ) — ว่าง = ยังไม่เปิดใช้ · ตั้งเป็น 'owner/repo' เมื่อ push ขึ้น GitHub แล้ว
-define('BP_UPDATE_REPO', '');
+define('BP_UPDATE_REPO', 'uiranut-svg/budget-plan');
 
 function bp_version()
 {

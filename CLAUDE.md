@@ -32,7 +32,7 @@
 - ยอดหมวด: มีรายการย่อย = ผลรวมรายการ, ไม่มี = `category.amount` · ยอดแหล่งเงินหลักที่มีแหล่งย่อย = ผลรวม
 - ล็อกอินผิด 5 ครั้ง/15 นาที/IP = พัก (`login_fail`)
 - ตาราง (prefix `bp_`): `setting` · `user` (role) · `user_unit` · `login_fail` · `log` · `year` · `category` · `item` · `book` · `unit` (parent_id — ฝ่าย→งาน) · `fund` (year_id, parent_id, estimate, carry_in, received) · `project` (code, unit_id, fund_id, expense ข้อความ, requested/approved/spent, spent_q1..q4, status plan|doing|done|reserve|cancel, quarters "1,2", owner, objective, target, result, result_pct, problems) · `project_file` (kind photo|doc) · `project_align` · `align` (parent_id NULL=ชุด) · `procure` (seq, project_id, method, budget, ref_price, plan_month YYYY-MM, bidders, vendor, contract_amount, contract_no, contract_date, reason, status plan|doing|done|cancel) · `report` (year_id+period 6|12 unique, summary, problems, suggestions, published)
-- รุ่นโค้ด: ไฟล์ `VERSION` (YYYYNNNN แบบ SAM, ตอนนี้ 20260003)
+- รุ่นโค้ด: ไฟล์ `VERSION` (YYYYNNNN แบบ SAM, ตอนนี้ 20260004)
 
 ## เครื่องพัฒนา
 - http://localhost/budget-plan/ · DB `budget_plan` · ข้อมูลตัวอย่าง 2567–2569 = ตัวเลขจาก sbt + รายการย่อยสมมติปี 2569 + แหล่งเงินทั้ง 3 ปี/หน่วยงาน/ความสอดคล้อง/โครงการ 19 โครงการ (มีเบิกจ่ายรายไตรมาส + ผล) /จัดซื้อ 12 รายการ ปี 2569 (จาก seeder ของ vec.plan) · เล่มทดสอบ = คู่มือ SAM
@@ -46,8 +46,8 @@
 - หลัง tunnel ทุกคำขอมาจาก 127.0.0.1: `bp_client_ip()` ใช้ `CF-Connecting-IP`, `bp_https()` ใช้ `X-Forwarded-Proto` (เชื่อเฉพาะเมื่อมาจาก loopback — `bp_from_local_proxy()`)
 
 ## สถานะ (2026-10-27)
-- ทำครบตามรายการที่เสนอ 8 ข้อ (รายงาน 6/12 เดือน, จัดซื้อจัดจ้าง, ผลโครงการ+ไฟล์, ผู้ใช้หลายระดับ, บันทึกการแก้ไข+ข้อมูล ณ วันที่, ตรวจตัวเลข, Excel, สำรอง/อัปเดต) · ทดสอบผ่าน HTTP แล้ว · ยังไม่ติดตั้งที่วิทยาลัยไหน · ยังไม่ push GitHub (ระบบอัปเดตจึงยังปิด) · ยังไม่ทดสอบบน PHP 5.4 จริง (ผ่านแค่ตัวตรวจโค้ด)
-- รอผู้ใช้ตัดสิน: ชื่อระบบ/ชื่อโฟลเดอร์จริง · repo GitHub (แล้วตั้ง `BP_UPDATE_REPO`) · ข้อมูล/เล่มแผนจริงของวิทยาลัย
+- ทำครบตามรายการที่เสนอ 8 ข้อ (รายงาน 6/12 เดือน, จัดซื้อจัดจ้าง, ผลโครงการ+ไฟล์, ผู้ใช้หลายระดับ, บันทึกการแก้ไข+ข้อมูล ณ วันที่, ตรวจตัวเลข, Excel, สำรอง/อัปเดต) · ทดสอบผ่าน HTTP แล้ว · ยังไม่ติดตั้งที่วิทยาลัยไหน · อยู่บน GitHub แล้ว https://github.com/uiranut-svg/budget-plan (public, ตั้ง 2026-10-27; `BP_UPDATE_REPO` ชี้แล้ว) · ปล่อยรุ่นใหม่ = เพิ่มเลข `VERSION` → commit → `git tag vYYYYNNNN` → `git push origin main --tags` · ยังไม่ทดสอบบน PHP 5.4 จริง (ผ่านแค่ตัวตรวจโค้ด)
+- รอผู้ใช้ตัดสิน: ชื่อระบบ/ชื่อโฟลเดอร์จริง · ข้อมูล/เล่มแผนจริงของวิทยาลัย
 
 ## ยังไม่ได้ทำ (ไอเดีย)
 โค้ด vec.plan-main อยู่ที่ `C:/xampp/htdocs/vec.plan-main` (ระบบภายใน PHP 8 + React: สายอนุมัติ สมุดบัญชีกองเงิน ฯลฯ ยังไม่ได้รวม) · หมวดย่อยหลายชั้น/แผนงาน-โครงการ-ผลผลิต · รับเงินรายไตรมาสของแหล่งเงิน (ตอนนี้รับจริงเป็นยอดเดียว) · ย่อรูปตอนอัปโหลด · แจ้งเตือนผู้กรอกข้อมูลหน่วยงานเมื่อใกล้สิ้นไตรมาส · ฟอนต์มาตรฐานของ pdf.js (`standardFontDataUrl`) สำหรับ PDF ที่ใช้ Dingbats
