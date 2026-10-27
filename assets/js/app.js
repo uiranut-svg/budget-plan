@@ -42,6 +42,81 @@
         }
       });
     }
+    var tickM = function (v) { return v >= 1e6 ? (v / 1e6) + ' ล.' : Number(v).toLocaleString('th-TH'); };
+    var surface = (css.getPropertyValue('--surface') || '#fff').trim();
+
+    // แหล่งเงิน: สัดส่วน (ประมาณการ + ยกมา) และประมาณการเทียบรับจริง
+    var f = BP.fund;
+    el = document.getElementById('chFund');
+    if (el && f && f.labels.length) {
+      var ftot = f.avail.reduce(function (a, b) { return a + b; }, 0);
+      new Chart(el, {
+        type: 'doughnut',
+        data: { labels: f.labels, datasets: [{ data: f.avail, backgroundColor: f.colors, borderWidth: 2, borderColor: surface }] },
+        options: {
+          maintainAspectRatio: false, cutout: '58%',
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12 } },
+            tooltip: { callbacks: { label: function (t) { return ' ' + t.label + ': ' + money(t.raw) + ' บาท (' + (ftot ? (t.raw * 100 / ftot).toFixed(2) : 0) + '%)'; } } }
+          }
+        }
+      });
+    }
+    el = document.getElementById('chFundRecv');
+    if (el && f && f.labels.length) {
+      new Chart(el, {
+        type: 'bar',
+        data: {
+          labels: f.labels,
+          datasets: [
+            { label: 'ประมาณการ', data: f.estimate, backgroundColor: 'rgba(124,13,18,.28)', borderColor: '#7c0d12', borderWidth: 1, borderRadius: 4 },
+            { label: 'รับจริง', data: f.received, backgroundColor: f.colors, borderRadius: 4 }
+          ]
+        },
+        options: {
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: function (t) { return ' ' + t.dataset.label + ': ' + money(t.raw) + ' บาท'; } } } },
+          scales: { y: { grid: { color: grid }, ticks: { callback: tickM } }, x: { grid: { display: false } } }
+        }
+      });
+    }
+
+    // โครงการ: ตามฝ่าย (อนุมัติ/เบิกจ่าย) และรายไตรมาส
+    var pj = BP.pj;
+    el = document.getElementById('chDiv');
+    if (el && pj && pj.div.labels.length) {
+      new Chart(el, {
+        type: 'bar',
+        data: {
+          labels: pj.div.labels,
+          datasets: [
+            { label: 'งบอนุมัติ', data: pj.div.approved, backgroundColor: '#b3141b', borderRadius: 4 },
+            { label: 'เบิกจ่ายแล้ว', data: pj.div.spent, backgroundColor: '#c9a227', borderRadius: 4 }
+          ]
+        },
+        options: {
+          indexAxis: 'y', maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: function (t) { return ' ' + t.dataset.label + ': ' + money(t.raw) + ' บาท'; } } } },
+          scales: { x: { grid: { color: grid }, ticks: { callback: tickM } }, y: { grid: { display: false } } }
+        }
+      });
+    }
+    el = document.getElementById('chQ');
+    if (el && pj) {
+      new Chart(el, {
+        type: 'bar',
+        data: {
+          labels: ['ไตรมาส 1 (ต.ค.–ธ.ค.)', 'ไตรมาส 2 (ม.ค.–มี.ค.)', 'ไตรมาส 3 (เม.ย.–มิ.ย.)', 'ไตรมาส 4 (ก.ค.–ก.ย.)'],
+          datasets: [{ label: 'งบตามแผน', data: pj.q, backgroundColor: ['#7c0d12', '#b3141b', '#d9480f', '#c9a227'], borderRadius: 6 }]
+        },
+        options: {
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (t) { return ' ' + money(t.raw) + ' บาท'; } } } },
+          scales: { y: { grid: { color: grid }, ticks: { callback: tickM } }, x: { grid: { display: false } } }
+        }
+      });
+    }
+
     var c = BP.cmp;
     el = document.getElementById('chCmp');
     if (el && c && c.years.length > 1) {
@@ -76,6 +151,15 @@
   document.querySelectorAll('.cat-row.has-items').forEach(function (r) {
     r.addEventListener('click', function () { toggle(r); });
     r.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(r); } });
+  });
+
+  // ---------- แท็บชุดความสอดคล้อง ----------
+  document.querySelectorAll('.seg-btn[data-set]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var k = b.getAttribute('data-set');
+      document.querySelectorAll('.seg-btn[data-set]').forEach(function (x) { x.classList.toggle('on', x === b); x.setAttribute('aria-selected', x === b ? 'true' : 'false'); });
+      document.querySelectorAll('.align-set').forEach(function (p) { p.hidden = p.getAttribute('data-set') !== k; });
+    });
   });
 
   // ---------- ค้นหา ----------

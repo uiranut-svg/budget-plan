@@ -247,3 +247,205 @@ function bp_human_size($b)
     if ($b >= 1048576) return number_format($b / 1048576, 1) . ' MB';
     return number_format($b / 1024, 0) . ' KB';
 }
+
+// ---------- อัปเกรดฐานข้อมูล (สร้างตารางที่เพิ่มในรุ่นใหม่ — ทุกคำสั่งเป็น IF NOT EXISTS) ----------
+define('BP_SCHEMA_VER', 2);
+function bp_migrate()
+{
+    if ((int)bp_setting('schema_ver', '1') >= BP_SCHEMA_VER) return;
+    foreach (require BP_ROOT . '/inc/schema.php' as $sql) {
+        if (!bp_query(str_replace('{p}', $GLOBALS['BP_CFG']['prefix'], $sql))) return;
+    }
+    bp_setting_set('schema_ver', BP_SCHEMA_VER);
+}
+
+// ---------- หน่วยงาน ----------
+/** หน่วยงานทั้งหมด: array(id => row) + 'path' = "ฝ่าย › งาน" */
+function bp_units($reload = false)
+{
+    static $c = null;
+    if ($c !== null && !$reload) return $c;
+    $c = array();
+    $rows = bp_rows('SELECT * FROM ' . bp_t('unit') . ' ORDER BY sort,id');
+    foreach ($rows as $r) $c[$r['id']] = $r;
+    foreach ($c as $id => $r) {
+        $p = $r['parent_id'] && isset($c[$r['parent_id']]) ? $c[$r['parent_id']] : null;
+        $c[$id]['top_id'] = $p ? $p['id'] : $r['id'];
+        $c[$id]['top'] = $p ? $p['name'] : $r['name'];
+    }
+    return $c;
+}
+/** ต้นไม้หน่วยงาน: array of ฝ่าย + 'children' */
+function bp_unit_tree()
+{
+    $tops = array();
+    $kids = array();
+    foreach (bp_units() as $u) {
+        if ($u['parent_id']) $kids[$u['parent_id']][] = $u;
+        else $tops[] = $u;
+    }
+    foreach ($tops as $i => $t) $tops[$i]['children'] = isset($kids[$t['id']]) ? $kids[$t['id']] : array();
+    return $tops;
+}
+
+// ---------- แหล่งเงิน ----------
+/** แหล่งเงินของปี เป็นต้นไม้ 2 ชั้น · ยอดของแหล่งหลักที่มีแหล่งย่อย = ผลรวมแหล่งย่อย */
+function bp_funds($yid)
+{
+    $rows = bp_rows('SELECT * FROM ' . bp_t('fund') . ' WHERE year_id=' . (int)$yid . ' ORDER BY sort,id');
+    $tops = array();
+    $kids = array();
+    foreach ($rows as $r) {
+        foreach (array('estimate', 'carry_in', 'received') as $k) $r[$k] = round((float)$r[$k], 2);
+        if ($r['parent_id']) $kids[$r['parent_id']][] = $r;
+        else $tops[] = $r;
+    }
+    $sum = array('estimate' => 0, 'carry_in' => 0, 'received' => 0);
+    foreach ($tops as $i => $t) {
+        $t['color'] = bp_color($t['color'], $i);
+        $t['children'] = isset($kids[$t['id']]) ? $kids[$t['id']] : array();
+        if ($t['children']) {
+            foreach (array('estimate', 'carry_in', 'received') as $k) {
+                $s = 0;
+                foreach ($t['children'] as $ch) $s += $ch[$k];
+                $t[$k] = round($s, 2);
+            }
+        }
+        foreach ($sum as $k => $v) $sum[$k] += $t[$k];
+        $tops[$i] = $t;
+    }
+    return array('funds' => $tops, 'sum' => $sum);
+}
+/** id แหล่งเงิน => array(name, path, color, top_id) */
+function bp_fund_index($funds)
+{
+    $o = array();
+    foreach ($funds['funds'] as $t) {
+        $o[$t['id']] = array('name' => $t['name'], 'path' => $t['name'], 'color' => $t['color'], 'top_id' => $t['id']);
+        foreach ($t['children'] as $ch) $o[$ch['id']] = array('name' => $ch['name'], 'path' => $t['name'] . ' › ' . $ch['name'], 'color' => $t['color'], 'top_id' => $t['id']);
+    }
+    return $o;
+}
+
+// ---------- โครงการ ----------
+function bp_project_statuses()
+{
+    return array(
+        'plan' => 'ตามแผน (ยังไม่เริ่ม)',
+        'doing' => 'กำลังดำเนินการ',
+        'done' => 'ดำเนินการแล้วเสร็จ',
+        'reserve' => 'โครงการสำรอง',
+        'cancel' => 'ยกเลิก / ไม่ได้รับอนุมัติ',
+    );
+}
+/** หมวดรายจ่ายมาตรฐาน (ใช้เป็นตัวเลือกในฟอร์มโครงการ) */
+function bp_expense_types()
+{
+    return array(
+        'งบบุคลากร' => array('เงินเดือน', 'ค่าจ้างประจำ', 'ค่าจ้างชั่วคราว', 'ค่าตอบแทนพนักงานราชการ'),
+        'งบดำเนินงาน' => array('ค่าตอบแทน', 'ค่าใช้สอย', 'ค่าวัสดุ', 'ค่าสาธารณูปโภค'),
+        'งบลงทุน' => array('ค่าครุภัณฑ์', 'ค่าที่ดินและสิ่งก่อสร้าง'),
+        'งบเงินอุดหนุน' => array('เงินอุดหนุน'),
+        'งบรายจ่ายอื่น' => array('รายจ่ายอื่น'),
+    );
+}
+/** โครงการของปี + ความสอดคล้อง (align_ids) · $public = ไม่รวมที่ยกเลิก */
+function bp_projects($yid, $public = false)
+{
+    $rows = bp_rows('SELECT * FROM ' . bp_t('project') . ' WHERE year_id=' . (int)$yid . ($public ? " AND status<>'cancel'" : '') . ' ORDER BY code,id');
+    if (!$rows) return array();
+    $ids = array();
+    foreach ($rows as $r) $ids[] = (int)$r['id'];
+    $links = array();
+    foreach (bp_rows('SELECT project_id,align_id FROM ' . bp_t('project_align') . ' WHERE project_id IN (' . implode(',', $ids) . ')') as $l) $links[$l['project_id']][] = (int)$l['align_id'];
+    foreach ($rows as $i => $r) {
+        foreach (array('requested', 'approved', 'spent') as $k) $rows[$i][$k] = round((float)$r[$k], 2);
+        $rows[$i]['align_ids'] = isset($links[$r['id']]) ? $links[$r['id']] : array();
+    }
+    return $rows;
+}
+function bp_quarters_label($q)
+{
+    $q = trim((string)$q);
+    if ($q === '') return '';
+    return 'ไตรมาส ' . str_replace(',', ', ', $q);
+}
+
+// ---------- ความสอดคล้อง ----------
+/** ชุดความสอดคล้องของปี: array of set + 'items' (แต่ละข้อมี 'children') */
+function bp_aligns($yid)
+{
+    $rows = bp_rows('SELECT * FROM ' . bp_t('align') . ' WHERE year_id=' . (int)$yid . ' ORDER BY sort,id');
+    $by = array();
+    foreach ($rows as $r) $by[(int)$r['parent_id']][] = $r;
+    $sets = isset($by[0]) ? $by[0] : array();
+    foreach ($sets as $i => $s) {
+        $items = isset($by[$s['id']]) ? $by[$s['id']] : array();
+        foreach ($items as $j => $it) $items[$j]['children'] = isset($by[$it['id']]) ? $by[$it['id']] : array();
+        $sets[$i]['items'] = $items;
+    }
+    return $sets;
+}
+/** สรุปโครงการ: จำนวน ยอด แยกตามฝ่าย/ไตรมาส/สถานะ (โครงการสำรองไม่นับรวมยอด) */
+function bp_project_summary($projects)
+{
+    $units = bp_units();
+    $s = array('n' => 0, 'n_reserve' => 0, 'n_done' => 0, 'approved' => 0, 'spent' => 0, 'requested' => 0,
+        'status' => array(), 'by_div' => array(), 'by_q' => array(1 => 0, 2 => 0, 3 => 0, 4 => 0), 'top' => array());
+    foreach ($projects as $p) {
+        if (!isset($s['status'][$p['status']])) $s['status'][$p['status']] = 0;
+        $s['status'][$p['status']]++;
+        if ($p['status'] == 'reserve') { $s['n_reserve']++; continue; }
+        if ($p['status'] == 'cancel') continue;
+        $s['n']++;
+        if ($p['status'] == 'done') $s['n_done']++;
+        $s['approved'] += $p['approved'];
+        $s['spent'] += $p['spent'];
+        $s['requested'] += $p['requested'];
+        $div = $p['unit_id'] && isset($units[$p['unit_id']]) ? $units[$p['unit_id']]['top'] : 'ไม่ระบุหน่วยงาน';
+        if (!isset($s['by_div'][$div])) $s['by_div'][$div] = array('approved' => 0, 'spent' => 0, 'n' => 0);
+        $s['by_div'][$div]['approved'] += $p['approved'];
+        $s['by_div'][$div]['spent'] += $p['spent'];
+        $s['by_div'][$div]['n']++;
+        $qs = array();
+        foreach (explode(',', $p['quarters']) as $q) if ((int)$q >= 1 && (int)$q <= 4) $qs[] = (int)$q;
+        foreach ($qs as $q) $s['by_q'][$q] += $p['approved'] / count($qs);
+        $s['top'][] = $p;
+    }
+    uasort($s['by_div'], 'bp_cmp_approved');
+    usort($s['top'], 'bp_cmp_approved');
+    $s['top'] = array_slice($s['top'], 0, 5);
+    return $s;
+}
+function bp_cmp_approved($a, $b)
+{
+    if ($a['approved'] == $b['approved']) return 0;
+    return $a['approved'] < $b['approved'] ? 1 : -1;
+}
+/** นับโครงการ/งบอนุมัติ ต่อข้อความสอดคล้อง (ข้อหลักรวมข้อย่อย ไม่นับซ้ำ) */
+function bp_align_stats($sets, $projects)
+{
+    $by = array();
+    foreach ($projects as $p) {
+        if ($p['status'] == 'reserve' || $p['status'] == 'cancel') continue;
+        foreach ($p['align_ids'] as $a) $by[$a][$p['id']] = $p['approved'];
+    }
+    $out = array();
+    foreach ($sets as $set) {
+        $setP = array();
+        $items = array();
+        foreach ($set['items'] as $it) {
+            $ps = isset($by[$it['id']]) ? $by[$it['id']] : array();
+            $kids = array();
+            foreach ($it['children'] as $ch) {
+                $cp = isset($by[$ch['id']]) ? $by[$ch['id']] : array();
+                $ps = $ps + $cp;
+                $kids[] = array('name' => $ch['name'], 'n' => count($cp), 'amount' => array_sum($cp));
+            }
+            $setP = $setP + $ps;
+            $items[] = array('name' => $it['name'], 'n' => count($ps), 'amount' => array_sum($ps), 'children' => $kids);
+        }
+        $out[] = array('name' => $set['name'], 'n' => count($setP), 'amount' => array_sum($setP), 'items' => $items);
+    }
+    return $out;
+}

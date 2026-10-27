@@ -8,13 +8,31 @@ function bp_head($title, $extraHead = '')
         . '<title>' . h($title !== '' ? $title . ' · ' . $site : $site) . '</title>'
         . '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
         . '<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">'
-        . '<link rel="stylesheet" href="' . h(bp_url('assets/css/app.css')) . '?v=4">' . $extraHead . '</head><body>'
+        . '<link rel="stylesheet" href="' . h(bp_url('assets/css/app.css')) . '?v=6">' . $extraHead . '</head><body>'
         . '<header class="topbar"><div class="wrap topbar-in">'
         . '<a class="brand" href="' . h(bp_url('index.php')) . '"><span class="brand-mark" aria-hidden="true">฿</span><span><b>' . h($site) . '</b>'
         . ($school !== '' ? '<small>' . h($school) . '</small>' : '') . '</span></a>'
-        . '<nav class="topnav"><a href="' . h(bp_url('index.php')) . '#summary">ภาพรวม</a><a href="' . h(bp_url('index.php')) . '#detail">รายละเอียด</a>'
-        . '<a href="' . h(bp_url('index.php')) . '#compare">เปรียบเทียบ</a><a href="' . h(bp_url('index.php')) . '#books">เล่มแผน</a></nav>'
+        . '<nav class="topnav">' . bp_nav_links() . '</nav>'
         . '</div></header>';
+}
+/** เมนูบน — ส่งต่อปีที่เลือก ($GLOBALS['BP_NAV_YEAR']) · $GLOBALS['BP_NAV_ON'] = เมนูที่เปิดอยู่ */
+function bp_nav_links()
+{
+    $y = isset($GLOBALS['BP_NAV_YEAR']) ? (int)$GLOBALS['BP_NAV_YEAR'] : 0;
+    $on = isset($GLOBALS['BP_NAV_ON']) ? $GLOBALS['BP_NAV_ON'] : '';
+    $home = bp_url('index.php') . ($y ? '?y=' . $y : '');
+    $menu = array(
+        array('summary', $home . '#summary', 'ภาพรวม'),
+        array('funds', $home . '#funds', 'แหล่งเงิน'),
+        array('detail', $home . '#detail', 'รายละเอียดงบ'),
+        array('projects', bp_url('projects.php') . ($y ? '?y=' . $y : ''), 'โครงการ'),
+        array('strategy', $home . '#strategy', 'ยุทธศาสตร์'),
+        array('compare', $home . '#compare', 'เปรียบเทียบ'),
+        array('books', $home . '#books', 'เล่มแผน'),
+    );
+    $o = '';
+    foreach ($menu as $m) $o .= '<a' . ($on === $m[0] ? ' class="on"' : '') . ' href="' . h($m[1]) . '">' . $m[2] . '</a>';
+    return $o;
 }
 function bp_foot()
 {

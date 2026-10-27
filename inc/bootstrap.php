@@ -16,3 +16,4 @@ if (!$BP_DB) {
     http_response_code(503);
     exit('<meta charset="utf-8">เชื่อมต่อฐานข้อมูลไม่ได้ กรุณาลองใหม่ภายหลัง');
 }
+bp_migrate();

@@ -65,6 +65,7 @@ $deps = array();
 foreach (bp_rows('SELECT DISTINCT department FROM ' . bp_t('item') . " WHERE department<>'' ORDER BY department LIMIT 300") as $r) $deps[] = $r['department'];
 
 admin_head('ปีงบประมาณ ' . $y['year'], 'index');
+admin_year_tabs($y, 'year');
 ?>
 <form method="post" id="yearForm">
   <?php echo bp_csrf_field(); ?>

@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>เข้าสู่ระบบ · <?php echo h(bp_site_name()); ?></title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="<?php echo h(bp_url('assets/css/app.css')); ?>?v=4"></head>
+<link rel="stylesheet" href="<?php echo h(bp_url('assets/css/app.css')); ?>?v=6"></head>
 <body class="setup">
 <main class="setup-box narrow">
   <h1>เข้าสู่ระบบผู้ดูแล</h1>

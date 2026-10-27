@@ -64,4 +64,66 @@ return array(
         PRIMARY KEY (`id`),
         KEY `year_id` (`year_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+    // หน่วยงาน (ต้นไม้ 2 ชั้น: ฝ่าย → งาน/แผนกวิชา) ใช้ร่วมทุกปี
+    "CREATE TABLE IF NOT EXISTS `{p}unit` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `parent_id` int(11) DEFAULT NULL,
+        `name` varchar(255) NOT NULL,
+        `sort` int(11) NOT NULL DEFAULT 0,
+        PRIMARY KEY (`id`),
+        KEY `parent_id` (`parent_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+    // แหล่งเงินของแต่ละปี (ต้นไม้ 2 ชั้น) + ประมาณการรายรับ / ยกมา / รับจริง
+    "CREATE TABLE IF NOT EXISTS `{p}fund` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `year_id` int(11) NOT NULL,
+        `parent_id` int(11) DEFAULT NULL,
+        `name` varchar(255) NOT NULL,
+        `color` varchar(16) NOT NULL DEFAULT '',
+        `estimate` decimal(15,2) NOT NULL DEFAULT 0,
+        `carry_in` decimal(15,2) NOT NULL DEFAULT 0,
+        `received` decimal(15,2) NOT NULL DEFAULT 0,
+        `note` varchar(500) NOT NULL DEFAULT '',
+        `sort` int(11) NOT NULL DEFAULT 0,
+        PRIMARY KEY (`id`),
+        KEY `year_id` (`year_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+    // โครงการตามแผนของแต่ละปี
+    "CREATE TABLE IF NOT EXISTS `{p}project` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `year_id` int(11) NOT NULL,
+        `code` varchar(32) NOT NULL DEFAULT '',
+        `title` varchar(500) NOT NULL,
+        `unit_id` int(11) DEFAULT NULL,
+        `fund_id` int(11) DEFAULT NULL,
+        `expense` varchar(255) NOT NULL DEFAULT '',
+        `requested` decimal(15,2) NOT NULL DEFAULT 0,
+        `approved` decimal(15,2) NOT NULL DEFAULT 0,
+        `spent` decimal(15,2) NOT NULL DEFAULT 0,
+        `status` varchar(16) NOT NULL DEFAULT 'plan',
+        `quarters` varchar(16) NOT NULL DEFAULT '',
+        `owner` varchar(255) NOT NULL DEFAULT '',
+        `objective` text,
+        `target` text,
+        `note` varchar(500) NOT NULL DEFAULT '',
+        `updated_at` datetime DEFAULT NULL,
+        PRIMARY KEY (`id`),
+        KEY `year_id` (`year_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+    // ความสอดคล้อง: parent_id NULL = ชุด (เช่น ยุทธศาสตร์ชาติ) · มี parent = ข้อในชุด (ข้อย่อยได้อีก 1 ชั้น)
+    "CREATE TABLE IF NOT EXISTS `{p}align` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `year_id` int(11) NOT NULL,
+        `parent_id` int(11) DEFAULT NULL,
+        `name` varchar(500) NOT NULL,
+        `sort` int(11) NOT NULL DEFAULT 0,
+        PRIMARY KEY (`id`),
+        KEY `year_id` (`year_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+    "CREATE TABLE IF NOT EXISTS `{p}project_align` (
+        `project_id` int(11) NOT NULL,
+        `align_id` int(11) NOT NULL,
+        PRIMARY KEY (`project_id`,`align_id`),
+        KEY `align_id` (`align_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
 );

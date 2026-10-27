@@ -9,7 +9,7 @@ header('X-Frame-Options: SAMEORIGIN');
 function setup_page($body)
 {
     echo '<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
-        . '<title>ติดตั้งระบบ</title><link rel="stylesheet" href="assets/css/app.css"></head><body class="setup">'
+        . '<title>ติดตั้งระบบ</title><link rel="stylesheet" href="assets/css/app.css?v=6"></head><body class="setup">'
         . '<main class="setup-box">' . $body . '</main></body></html>';
     exit;
 }
@@ -76,6 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 'school_name' => $v['school_name'],
                 'intro' => 'ข้อมูลแผนปฏิบัติราชการ งบประมาณรายจ่ายประจำปี จำแนกตามหมวดงบประมาณ เพื่อเผยแพร่ต่อสาธารณะ',
                 'unit_name' => 'งานวางแผนและงบประมาณ',
+                'schema_ver' => (string)BP_SCHEMA_VER,
             );
             foreach ($set as $k => $val) {
                 mysqli_query($db, "INSERT INTO `{$p}setting` (name,value) VALUES ('" . mysqli_real_escape_string($db, $k) . "','" . mysqli_real_escape_string($db, $val) . "')");
@@ -89,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 foreach ($created as $t) mysqli_query($db, 'DROP TABLE IF EXISTS `' . $t . '`');
                 $err = $ok ? 'เขียนไฟล์ inc/config.php ไม่ได้ — ให้สิทธิ์เขียนโฟลเดอร์ inc/ แก่เว็บเซิร์ฟเวอร์' : 'สร้างบัญชีผู้ดูแลระบบไม่ได้: ' . mysqli_error($db);
             } else {
-                setup_page('<h1>ติดตั้งเสร็จแล้ว</h1><p>เข้าสู่ระบบผู้ดูแลด้วยชื่อผู้ใช้ <b>' . h($v['admin_user']) . '</b> แล้วเพิ่มปีงบประมาณ/อัปโหลดเล่มแผนได้เลย</p>'
+                setup_page('<h1>ติดตั้งเสร็จแล้ว</h1><p>เข้าสู่ระบบผู้ดูแลด้วยชื่อผู้ใช้ <b>' . h($v['admin_user']) . '</b> แล้วตั้ง <b>หน่วยงาน</b> (มีปุ่มใส่หน่วยงานมาตรฐาน) เพิ่มปีงบประมาณ แหล่งเงิน โครงการ และอัปโหลดเล่มแผนได้เลย</p>'
                     . '<p>ตรวจว่าโฟลเดอร์ <code>files/books/</code> เขียนได้ (สำหรับอัปโหลดเล่มแผน)</p>'
                     . '<p><a class="btn" href="admin/login.php">เข้าสู่ระบบผู้ดูแล</a> <a class="btn btn-ghost" href="index.php">หน้าแรก</a></p>');
             }

@@ -214,3 +214,66 @@ body.reader { height: 100vh; height: 100dvh; display: flex; flex-direction: colu
 .rd-zoom-body canvas { background: #fff; box-shadow: 0 6px 30px rgba(0,0,0,.5); margin: 0 auto; flex: none; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .cover, .rd-pg canvas { transition: none; } }
 @media print { .topbar, .footer, .year-tabs, .search { display: none; } body { background: #fff; } .panel, .card { box-shadow: none; } }
+
+/* ---------- สถานะโครงการ ---------- */
+.tag.st-plan { background: #eef1f6; color: #1f3a68; border-color: transparent; }
+.tag.st-doing { background: #fff6dd; color: #8a6400; border-color: #ecd9a0; }
+.tag.st-done { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+.tag.st-reserve { background: transparent; color: var(--muted); border-style: dashed; }
+.tag.st-cancel { background: var(--err-soft); color: var(--err); border-color: transparent; }
+.tag { white-space: nowrap; }
+
+/* ---------- แท็บแบบปุ่ม (ชุดความสอดคล้อง) ---------- */
+.seg { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.seg-btn { font: inherit; font-size: .92rem; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); cursor: pointer; }
+.seg-btn:hover { border-color: var(--brand); color: var(--brand); }
+.seg-btn.on { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 600; box-shadow: inset 0 -3px 0 var(--gold); }
+
+/* ---------- แถบแนวนอน (ยอดต่อข้อ) ---------- */
+.hbar { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(80px, 2fr) minmax(150px, auto); gap: 12px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--line); }
+.hbar:last-child { border-bottom: 0; }
+.hbar-label { font-size: .95rem; }
+.hbar-track { height: 12px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+.hbar-track i { display: block; height: 100%; min-width: 2px; background: linear-gradient(90deg, var(--brand-2), var(--brand)); border-radius: 99px; }
+.hbar-val { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.hbar.child .hbar-label { padding-left: 22px; color: var(--ink-2); font-size: .9rem; }
+.hbar.child .hbar-track { height: 8px; } .hbar.child .hbar-track i { background: var(--gold); }
+@media (max-width: 640px) { .hbar { grid-template-columns: 1fr auto; gap: 4px 10px; } .hbar-track { grid-column: 1 / -1; grid-row: 2; } }
+
+/* ---------- รายการโครงการ ---------- */
+.filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+.filters input[type=search] { flex: 1 1 240px; }
+.filters select { flex: 0 1 220px; max-width: 100%; }
+.pj-sum { margin: 0 0 10px; color: var(--ink-2); }
+.pj-row { cursor: pointer; }
+.pj-row:hover td { background: var(--brand-soft) !important; }
+.pj-row .caret { color: var(--muted); display: inline-block; transition: transform .2s; margin-left: 4px; }
+.pj-row[aria-expanded="true"] .caret { transform: rotate(180deg); }
+.pj-title { font-weight: 600; }
+.pj-meta { display: block; color: var(--muted); font-size: .85rem; }
+.pj-prog { min-width: 120px; }
+.pj-prog .bar { margin-top: 4px; --c: var(--ok); }
+.tbl .pj-detail td { background: var(--surface-2) !important; }
+.pj-dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 4px 0; font-size: .95rem; }
+.pj-dl dt { color: var(--muted); } .pj-dl dd { margin: 0; }
+.pj-dl ul { margin: 0; padding-left: 18px; }
+@media (max-width: 640px) { .pj-dl { grid-template-columns: 1fr; gap: 0; } .pj-dl dd { margin-bottom: 8px; } }
+.hero.slim { padding: 26px 0 22px; }
+.seg a.seg-btn { text-decoration: none; display: inline-block; }
+.nowrap { white-space: nowrap; }
+.admin-tabs { margin-bottom: 16px; }
+.unit-list { margin: 0 0 8px; padding-left: 20px; columns: 2 220px; } .unit-list li { break-inside: avoid; }
+.fund-ed { min-width: 900px; margin-top: 0; }
+.fund-ed th, .fund-ed td { padding: 6px 6px; }
+.fund-ed td:nth-child(1) { width: 52px; } .fund-ed td:nth-child(2) { width: auto; }
+.fund-ed td:nth-child(3), .fund-ed td:nth-child(4), .fund-ed td:nth-child(5) { width: 150px; }
+.fund-ed td:nth-child(5) { width: 150px; } .fund-ed td:nth-child(7) { width: 1%; white-space: nowrap; }
+.fund-ed tr.lv0 td { background: var(--surface-2); border-top: 1px solid var(--line); }
+.fund-ed tr.lv0 .f-name { font-weight: 600; }
+.fund-ed tr.lv1 td:nth-child(2) { padding-left: 34px; }
+.fund-ed input:disabled { background: transparent; border-color: transparent; color: var(--ink-2); font-weight: 600; }
+.al-set { border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; margin-bottom: 8px; }
+.al-set summary { cursor: pointer; padding: 2px 0; }
+.al-set .chk { padding: 4px 0; }
+.al-sub { padding-left: 26px !important; font-size: .95rem; }
+.fld input[type=checkbox], .fld input[type=radio] { width: auto; }

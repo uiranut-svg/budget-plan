@@ -31,6 +31,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     if ($old) bp_query('INSERT INTO ' . bp_t('item') . ' (category_id,name,department,amount,note,sort) SELECT ' . $cid . ',name,department,0,note,sort FROM ' . bp_t('item') . ' WHERE category_id=' . (int)$old['id']);
                 }
             }
+            // แหล่งเงินและชุดความสอดคล้อง: คัดลอกโครงสร้างจากปีล่าสุด (ยอดเป็น 0) หรือใช้ชุดมาตรฐาน
+            require_once BP_ROOT . '/inc/sample.php';
+            if ($src && !empty($_POST['copy'])) {
+                $map = array();
+                foreach (bp_rows('SELECT * FROM ' . bp_t('fund') . ' WHERE year_id=' . (int)$src['id'] . ' ORDER BY parent_id IS NOT NULL, sort, id') as $f) {
+                    $par = $f['parent_id'] ? (isset($map[$f['parent_id']]) ? (int)$map[$f['parent_id']] : null) : 'NULL';
+                    if ($par === null) continue;
+                    bp_query('INSERT INTO ' . bp_t('fund') . ' (year_id,parent_id,name,color,note,sort) VALUES (' . $yid . ',' . $par . ',' . q($f['name']) . ',' . q($f['color']) . ',' . q($f['note']) . ',' . (int)$f['sort'] . ')');
+                    $map[$f['id']] = bp_insert_id();
+                }
+                $map = array();
+                foreach (bp_rows('SELECT * FROM ' . bp_t('align') . ' WHERE year_id=' . (int)$src['id'] . ' ORDER BY id') as $a) {
+                    $par = $a['parent_id'] ? (isset($map[$a['parent_id']]) ? (int)$map[$a['parent_id']] : null) : 'NULL';
+                    if ($par === null) continue;
+                    bp_query('INSERT INTO ' . bp_t('align') . ' (year_id,parent_id,name,sort) VALUES (' . $yid . ',' . $par . ',' . q($a['name']) . ',' . (int)$a['sort'] . ')');
+                    $map[$a['id']] = bp_insert_id();
+                }
+            }
+            bp_seed_funds($yid);
+            bp_seed_align($yid);
             bp_flash('เพิ่มปีงบประมาณ ' . $year . ' แล้ว (ยังไม่เผยแพร่ — กรอกข้อมูลแล้วติ๊ก "เผยแพร่")');
             bp_redirect('admin/year.php?id=' . $yid);
         }
@@ -41,6 +61,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             bp_query('DELETE i FROM ' . bp_t('item') . ' i JOIN ' . bp_t('category') . ' c ON c.id=i.category_id WHERE c.year_id=' . $yid);
             bp_query('DELETE FROM ' . bp_t('category') . ' WHERE year_id=' . $yid);
             bp_query('UPDATE ' . bp_t('book') . ' SET year_id=NULL WHERE year_id=' . $yid);
+            bp_query('DELETE pa FROM ' . bp_t('project_align') . ' pa JOIN ' . bp_t('project') . ' p ON p.id=pa.project_id WHERE p.year_id=' . $yid);
+            bp_query('DELETE FROM ' . bp_t('project') . ' WHERE year_id=' . $yid);
+            bp_query('DELETE FROM ' . bp_t('fund') . ' WHERE year_id=' . $yid);
+            bp_query('DELETE FROM ' . bp_t('align') . ' WHERE year_id=' . $yid);
             bp_query('DELETE FROM ' . bp_t('year') . ' WHERE id=' . $yid);
             bp_flash('ลบปีงบประมาณ ' . $y['year'] . ' แล้ว (เล่มแผนของปีนี้ยังอยู่)');
         } else {
@@ -55,19 +79,20 @@ admin_head('ปีงบประมาณ', 'index');
 ?>
 <div class="panel flush">
   <table class="tbl">
-    <thead><tr><th>ปีงบประมาณ</th><th class="hide-sm">ชื่อแผน</th><th class="num">งบประมาณรวม (บาท)</th><th class="num hide-sm">หมวด / รายการ</th><th>สถานะ</th><th></th></tr></thead>
+    <thead><tr><th>ปีงบประมาณ</th><th class="hide-sm">ชื่อแผน</th><th class="num">งบประมาณรวม (บาท)</th><th class="num hide-sm">หมวด / รายการ</th><th class="num hide-sm">โครงการ</th><th>สถานะ</th><th></th></tr></thead>
     <tbody>
-    <?php if (!$years) { ?><tr><td colspan="6" class="center muted">ยังไม่มีปีงบประมาณ — เพิ่มด้านล่าง</td></tr><?php } ?>
+    <?php if (!$years) { ?><tr><td colspan="7" class="center muted">ยังไม่มีปีงบประมาณ — เพิ่มด้านล่าง</td></tr><?php } ?>
     <?php foreach ($years as $y) { $d = bp_year_data($y['id']); $n = 0; foreach ($d['categories'] as $c) $n += count($c['items']); ?>
       <tr>
         <td><b><?php echo (int)$y['year']; ?></b></td>
         <td class="hide-sm"><?php echo h($y['title']); ?></td>
         <td class="num"><?php echo bp_money($d['total']); ?></td>
         <td class="num hide-sm"><?php echo count($d['categories']); ?> / <?php echo $n; ?></td>
+        <td class="num hide-sm"><?php $pc = bp_row("SELECT COUNT(*) n FROM " . bp_t("project") . " WHERE year_id=" . (int)$y["id"]); echo (int)$pc["n"]; ?></td>
         <td><?php echo $y['published'] ? '<span class="tag ok">เผยแพร่</span>' : '<span class="tag">ฉบับร่าง</span>'; ?></td>
         <td class="actions">
           <a class="btn btn-sm" href="year.php?id=<?php echo (int)$y['id']; ?>">แก้ไข</a>
-          <form method="post" class="inline" onsubmit="var v=prompt('พิมพ์ปี <?php echo (int)$y['year']; ?> เพื่อยืนยันการลบ (ข้อมูลหมวด/รายการของปีนี้จะหายทั้งหมด)');if(!v)return false;this.confirm.value=v;">
+          <form method="post" class="inline" onsubmit="var v=prompt('พิมพ์ปี <?php echo (int)$y['year']; ?> เพื่อยืนยันการลบ (หมวด/รายการ แหล่งเงิน และโครงการของปีนี้จะหายทั้งหมด)');if(!v)return false;this.confirm.value=v;">
             <?php echo bp_csrf_field(); ?><input type="hidden" name="act" value="delete"><input type="hidden" name="id" value="<?php echo (int)$y['id']; ?>"><input type="hidden" name="confirm">
             <button class="btn btn-sm btn-danger" type="submit">ลบ</button>
           </form>
@@ -85,7 +110,7 @@ admin_head('ปีงบประมาณ', 'index');
     <label class="fld"><span>ปี พ.ศ.</span><input type="number" name="year" value="<?php echo $years ? (int)$years[0]['year'] + 1 : (date('n') >= 10 ? date('Y') + 544 : date('Y') + 543); ?>" required></label>
     <label class="fld grow"><span>ชื่อแผน (ไม่บังคับ)</span><input name="title" placeholder="เช่น แผนปฏิบัติราชการ ประจำปีงบประมาณ พ.ศ. ..."></label>
     <?php if ($years) { ?>
-    <label class="chk"><input type="checkbox" name="copy" value="1" checked> ใช้หมวดเดียวกับปี <?php echo (int)$years[0]['year']; ?></label>
+    <label class="chk"><input type="checkbox" name="copy" value="1" checked> ใช้หมวด แหล่งเงิน และชุดความสอดคล้องเดียวกับปี <?php echo (int)$years[0]['year']; ?></label>
     <label class="chk"><input type="checkbox" name="copy_items" value="1"> คัดลอกรายการย่อยด้วย (ยอดเป็น 0)</label>
     <?php } ?>
     <button class="btn" type="submit">เพิ่ม</button>
