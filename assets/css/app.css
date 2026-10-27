@@ -388,3 +388,4 @@ body.reader { height: 100vh; height: 100dvh; display: flex; flex-direction: colu
   .tbl.ita td { border: 0; padding: 3px 14px; }
   .tbl.ita td.muted:first-child { display: none; }
 }
+.chk.d-block { display: flex; align-items: flex-start; } .chk.d-block input { margin-top: 5px; }

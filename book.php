@@ -17,7 +17,7 @@ $dlName = $b['orig_name'] !== '' ? $b['orig_name'] : ($b['title'] . '.pdf');
 <title><?php echo h($b['title'] . ' · ' . bp_site_name()); ?></title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="<?php echo h(bp_url('assets/css/app.css')); ?>?v=11">
+<link rel="stylesheet" href="<?php echo h(bp_url('assets/css/app.css')); ?>?v=12">
 </head>
 <body class="reader">
 <header class="rd-bar">

@@ -39,15 +39,17 @@ admin_year_tabs($y, 'excel');
   <form class="panel" method="post" enctype="multipart/form-data">
     <?php echo bp_csrf_field(); ?>
     <h2>นำเข้าจาก Excel</h2>
-    <p class="small">ใช้ได้ทั้ง<b>ไฟล์ที่ดาวน์โหลดจากทางซ้าย</b> และ<b>ไฟล์แผนปฏิบัติการ/แผนจัดซื้อจัดจ้างที่วิทยาลัยทำไว้เอง</b> — ระบบหาแถวหัวตารางให้เอง (หัวตาราง 2 ชั้นได้), ข้ามแถวชื่อฝ่ายและแถว "รวม",
-      อ่านเครื่องหมาย ✓ ในช่องไตรมาส/เดือน และงบที่แยกคอลัมน์ตามแหล่งเงิน</p>
-    <p class="small">ดูตัวอย่างไฟล์แบบที่อ่านได้: <a href="<?php echo h(bp_url('samples/sample-plan-2570.xlsx')); ?>">ไฟล์แผนปฏิบัติการตัวอย่าง (.xlsx)</a> <span class="muted">(ข้อมูลสมมติ)</span></p>
-    <label class="fld"><span>ไฟล์ .xlsx</span><input type="file" name="xlsx" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required></label>
-    <label class="chk d-block"><input type="checkbox" name="projects" value="1" checked> <b>โครงการ</b> — รหัสตรงกับของเดิม = อัปเดต · รหัสใหม่ = เพิ่ม (ไม่ลบโครงการที่ไม่มีในไฟล์)</label>
-    <label class="chk d-block"><input type="checkbox" name="procure" value="1" checked> <b>จัดซื้อจัดจ้าง</b> — ลำดับตรงกับของเดิม = อัปเดต</label>
-    <label class="chk d-block"><input type="checkbox" name="funds" value="1"> <b>แหล่งเงิน</b> — อัปเดตยอดตามชื่อ / เพิ่มแหล่งใหม่ (ไม่ลบ)</label>
-    <label class="chk d-block"><input type="checkbox" name="budget" value="1"> <b>งบตามหมวด</b> — <span class="text-err">แทนที่หมวดและรายการทั้งหมดของปีนี้</span></label>
-    <p class="muted small">แนะนำให้ <a href="backup.php">สำรองข้อมูล</a> ก่อนนำเข้าครั้งใหญ่ · ติ๊ก <b>แหล่งเงิน</b> ด้วยถ้าไฟล์มีแผ่นประมาณการรายรับ · โครงการที่ชื่อตรงกับของเดิม = อัปเดต (ไม่สร้างซ้ำ) · ชื่อหน่วยงาน/แหล่งเงินที่ระบบหาไม่เจอจะแจ้งให้ทราบ</p>
+    <p class="small">อัปโหลดไฟล์แผนจาก Excel แทนการพิมพ์ทีละโครงการ — ใช้<b>ไฟล์แผนปฏิบัติการที่วิทยาลัยมีอยู่แล้ว</b>ได้เลย
+      (<a href="<?php echo h(bp_url('samples/sample-plan-2570.xlsx')); ?>">ดูไฟล์ตัวอย่าง</a>) หรือไฟล์ที่ดาวน์โหลดจากกล่องซ้ายแล้วแก้ใน Excel</p>
+    <label class="fld"><span><b>1.</b> เลือกไฟล์ .xlsx</span><input type="file" name="xlsx" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required></label>
+    <div class="fld"><span><b>2.</b> ติ๊กเลือกข้อมูลที่จะนำเข้าจากไฟล์</span>
+      <label class="chk d-block"><input type="checkbox" name="projects" value="1" checked><span><b>โครงการ</b><small class="muted d-block">เพิ่มโครงการใหม่ และอัปเดตโครงการที่มีอยู่แล้ว (ดูจากรหัสหรือชื่อโครงการ) · โครงการที่ไม่มีในไฟล์ยังอยู่เหมือนเดิม</small></span></label>
+      <label class="chk d-block"><input type="checkbox" name="procure" value="1" checked><span><b>แผนจัดซื้อจัดจ้าง</b><small class="muted d-block">เพิ่ม/อัปเดตรายการตามเลขลำดับ และผูกกับโครงการที่ชื่อตรงกัน</small></span></label>
+      <label class="chk d-block"><input type="checkbox" name="funds" value="1"><span><b>แหล่งเงิน (ประมาณการรายรับ)</b><small class="muted d-block">ติ๊กเมื่อไฟล์มีแผ่นประมาณการรายรับ · ปรับยอดตามชื่อแหล่งเงิน ไม่ลบของเดิม</small></span></label>
+      <label class="chk d-block"><input type="checkbox" name="budget" value="1"><span><b>งบตามหมวด</b><small class="text-err d-block">ระวัง: ลบหมวดและรายการเดิมของปีนี้ทั้งหมด แล้วใส่ตามไฟล์แทน</small></span></label>
+    </div>
+    <p class="small"><b>3.</b> กด <b>นำเข้า</b> — ระบบแจ้งผลว่าเพิ่ม/อัปเดตกี่รายการ และบอกชื่อหน่วยงานหรือแหล่งเงินในไฟล์ที่หาไม่เจอ (แก้ทีหลังได้)</p>
+    <p class="muted small">ก่อนนำเข้าครั้งใหญ่ ควรกด <a href="backup.php">สำรองข้อมูล</a> ไว้ก่อน ถ้าผลไม่ถูกต้องกู้คืนได้ · ชื่อหน่วยงานในไฟล์ต้องมีอยู่ในเมนู หน่วยงาน ก่อน</p>
     <p><button class="btn" type="submit">นำเข้า</button></p>
   </form>
 </div>

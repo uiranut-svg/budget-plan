@@ -9,7 +9,7 @@ header('X-Frame-Options: SAMEORIGIN');
 function setup_page($body)
 {
     echo '<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
-        . '<title>ติดตั้งระบบ</title><link rel="stylesheet" href="assets/css/app.css?v=11"></head><body class="setup">'
+        . '<title>ติดตั้งระบบ</title><link rel="stylesheet" href="assets/css/app.css?v=12"></head><body class="setup">'
         . '<main class="setup-box">' . $body . '</main></body></html>';
     exit;
 }
