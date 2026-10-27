@@ -1,0 +1,103 @@
+/* เอกสารทางการสำหรับพิมพ์ / บันทึกเป็น PDF (doc.php) — กระดาษ A4 แบบหนังสือราชการ */
+@page { size: A4; margin: 2.5cm 2cm 2cm 3cm; }
+@page land { size: A4 landscape; margin: 2cm 1.8cm 1.6cm 2cm; }
+:root { --line: #000; --head: #ececec; --paper: #fff; --desk: #d9dadd; }
+* { box-sizing: border-box; }
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { margin: 0; background: var(--desk); color: #000; font-family: 'Sarabun', 'TH SarabunPSK', 'TH Sarabun New', sans-serif; font-size: 12pt; line-height: 1.5; }
+
+/* แถบเครื่องมือ (ไม่พิมพ์) */
+.doc-bar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 10px 16px; background: #7a0d12; color: #fff; font-size: 11pt; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+.doc-bar a { color: #fff; }
+.doc-bar b { font-size: 12pt; }
+.doc-bar .sp { flex: 1; }
+.doc-bar button, .doc-bar select { font: inherit; border-radius: 6px; border: 1px solid rgba(255,255,255,.5); background: rgba(255,255,255,.12); color: #fff; padding: 5px 12px; cursor: pointer; }
+.doc-bar select option { color: #000; }
+.doc-bar .primary { background: #fff; color: #7a0d12; font-weight: 700; border-color: #fff; }
+.doc-tip { max-width: 21cm; margin: 12px auto 0; padding: 8px 14px; background: #fff8d6; border: 1px solid #e2cf7c; border-radius: 8px; font-size: 10.5pt; color: #4d3e00; }
+
+/* หน้ากระดาษบนจอ */
+.sheet { position: relative; width: 21cm; min-height: 29.7cm; margin: 16px auto; padding: 2.5cm 2cm 2cm 3cm; background: var(--paper); box-shadow: 0 2px 14px rgba(0,0,0,.18); }
+.sheet.land { width: 29.7cm; min-height: 21cm; padding: 2cm 1.8cm 1.6cm 2cm; font-size: 11pt; }
+.pgno { position: absolute; top: 1.2cm; left: 0; right: 0; text-align: center; font-size: 12pt; }
+.sheet.land .pgno { top: .8cm; }
+
+/* ปก */
+.cover { display: flex; flex-direction: column; align-items: center; text-align: center; min-height: 24.5cm; }
+.cover .logo { width: 3cm; height: 3cm; object-fit: contain; margin: .4cm 0 1cm; }
+.cover .logo-space { height: 1.6cm; }
+.cover h1 { font-size: 22pt; line-height: 1.35; margin: 1.2cm 0 .3cm; font-weight: 700; }
+.cover .sub { font-size: 18pt; font-weight: 700; margin: 0 0 .2cm; }
+.cover .period { font-size: 15pt; margin: 0; }
+.cover .fill { flex: 1; }
+.cover .org { font-size: 16pt; font-weight: 700; line-height: 1.5; margin: 0 0 .6cm; }
+.cover .org small { display: block; font-size: 14pt; font-weight: 400; }
+
+/* หัวเรื่องและเนื้อความ */
+.doc-title { text-align: center; margin: 0 0 .5cm; }
+.doc-title h2 { font-size: 15pt; margin: 0; font-weight: 700; line-height: 1.45; }
+.doc-title p { margin: 0; font-size: 13pt; }
+.form-code { position: absolute; top: 1.3cm; right: 1.8cm; font-size: 11pt; font-weight: 700; border: 1px solid #000; padding: 0 8px; }
+h3.sec { font-size: 13pt; font-weight: 700; margin: .45cm 0 .2cm; }
+h3.sec:first-child { margin-top: 0; }
+h3.sec, h4.sec2, .doc-title { break-after: avoid; page-break-after: avoid; }
+.keep { break-inside: avoid; page-break-inside: avoid; }
+h4.sec2 { font-size: 12pt; font-weight: 700; margin: .3cm 0 .1cm; }
+p.para { margin: 0 0 .2cm; text-indent: 2.5cm; }
+.center { text-align: center; }
+.right { text-align: right; }
+.muted { color: #333; }
+.small { font-size: 10.5pt; }
+.nw { white-space: nowrap; }
+.dotlines span { display: block; height: .75cm; border-bottom: 1px dotted #000; }
+ul.dash { margin: 0 0 .2cm 1.6cm; padding: 0; }
+ul.dash li { margin: 0; }
+
+/* ตาราง */
+table.dt { width: 100%; border-collapse: collapse; margin: .1cm 0 .35cm; font-size: inherit; page-break-inside: auto; }
+.sheet:not(.land) table.dt { font-size: 11pt; }
+table.dt th, table.dt td { border: .75pt solid var(--line); padding: 2px 6px; vertical-align: top; line-height: 1.35; }
+table.dt thead th { background: var(--head); font-weight: 700; text-align: center; vertical-align: middle; }
+table.dt thead { display: table-header-group; }
+table.dt tfoot { display: table-row-group; }
+table.dt tfoot th, table.dt tfoot td, table.dt tr.sum td { font-weight: 700; background: #f6f6f6; }
+table.dt tr { page-break-inside: avoid; break-inside: avoid; }
+table.dt td.n, table.dt th.n { text-align: right; white-space: nowrap; }
+table.dt td.c, table.dt th.c { text-align: center; }
+table.dt tr.grp td { font-weight: 700; background: #f6f6f6; }
+table.dt td.ck { text-align: center; font-size: 12pt; }
+table.kv td:first-child { width: 62%; }
+
+/* ลงนาม */
+.signs { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .4cm .4cm; margin-top: .8cm; page-break-inside: avoid; break-inside: avoid; }
+.signs.one { justify-content: flex-end; }
+.sheet.land .sign { flex-basis: 8cm; }
+.sign { flex: 0 1 7.5cm; text-align: center; line-height: 1.65; }
+.sign .lbl { text-align: left; font-weight: 700; margin-bottom: .15cm; }
+.sign .dots { white-space: nowrap; }
+.approve { margin-top: .7cm; border: .75pt solid #000; padding: .3cm .5cm; page-break-inside: avoid; break-inside: avoid; }
+.approve .opts span { display: inline-block; margin-right: 1cm; }
+.approve .box { display: inline-block; width: .38cm; height: .38cm; border: .75pt solid #000; vertical-align: -1px; margin-right: 6px; }
+.approve .sign { margin-left: auto; }
+.note-foot { margin-top: .3cm; font-size: 10pt; }
+
+/* จอแคบ */
+@media screen and (max-width: 860px) {
+  .sheet, .sheet.land { width: auto; min-height: 0; margin: 10px 8px; padding: 1.2cm .8cm; overflow-x: auto; }
+  .cover { min-height: 0; }
+  .pgno { display: none; }
+  .form-code { position: static; display: inline-block; margin-bottom: 8px; }
+}
+
+/* พิมพ์ */
+@media print {
+  body { background: #fff; }
+  .doc-bar, .doc-tip, .no-print { display: none !important; }
+  .sheet, .sheet.land { width: auto; min-height: 0; margin: 0; padding: 2pt 0 0; box-shadow: none; break-after: page; page-break-after: always; }
+  .sheet:last-of-type { break-after: auto; page-break-after: auto; }
+  .sheet.land { page: land; }
+  .pgno { display: none; }
+  .form-code { position: static; float: right; margin: -.2cm 0 0; }
+  .cover { min-height: 24.2cm; }
+  a { color: #000; text-decoration: none; }
+}

@@ -90,6 +90,7 @@ bp_head('โครงการ' . ($cur ? ' ปี ' . (int)$cur['year'] : ''));
       <option value="">ทุกไตรมาส</option>
       <?php for ($i = 1; $i <= 4; $i++) { ?><option value="<?php echo $i; ?>">ไตรมาส <?php echo $i; ?></option><?php } ?>
     </select>
+    <a class="btn btn-sm" href="<?php echo h(bp_url('doc.php?d=plan&y=' . (int)$cur['year'])); ?>">พิมพ์แผนปฏิบัติการ (PDF)</a>
   </div>
   <p class="pj-sum" id="pjSum" aria-live="polite"></p>
 

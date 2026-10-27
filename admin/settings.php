@@ -24,6 +24,18 @@ function settings_save_units($uid, $role)
     if ($vals) bp_query('INSERT INTO ' . bp_t('user_unit') . ' (user_id,unit_id) VALUES ' . implode(',', $vals));
     return count($vals);
 }
+/** ผู้ลงนามในเอกสารพิมพ์: key => array(ป้าย, ตำแหน่งเริ่มต้น) */
+function settings_doc_signers()
+{
+    $school = bp_setting('school_name');
+    return array(
+        'reporter' => array('ผู้รายงาน / ผู้จัดทำแผน', 'หัวหน้า' . bp_setting('unit_name', 'งานวางแผนและงบประมาณ')),
+        'deputy' => array('ผู้ตรวจสอบ / ผู้เสนอ (รองผู้อำนวยการ)', 'รองผู้อำนวยการฝ่ายแผนงานและความร่วมมือ'),
+        'director' => array('ผู้อำนวยการ (ผู้อนุมัติ)', 'ผู้อำนวยการ' . $school),
+        'procure' => array('เจ้าหน้าที่พัสดุ (ผู้จัดทำแผนจัดซื้อจัดจ้าง)', 'เจ้าหน้าที่'),
+        'procure_head' => array('หัวหน้าเจ้าหน้าที่ (ลงนาม สขร.1)', 'หัวหน้าเจ้าหน้าที่'),
+    );
+}
 function settings_admin_count()
 {
     $r = bp_row('SELECT COUNT(*) n FROM ' . bp_t('user') . " WHERE role<>'unit'");
@@ -40,6 +52,43 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         foreach ($fields as $k => $f) if (isset($_POST[$k])) bp_setting_set($k, mb_substr(trim((string)$_POST[$k]), 0, 2000));
         bp_done('settings', 'บันทึกการตั้งค่าแล้ว');
+    } elseif ($act == 'docs') {
+        // ผู้ลงนามในเอกสารพิมพ์ + ตราสถานศึกษา
+        foreach (settings_doc_signers() as $k => $s) foreach (array('name', 'pos') as $x) {
+            $key = 'doc_' . $k . '_' . $x;
+            if (isset($_POST[$key])) bp_setting_set($key, mb_substr(trim((string)$_POST[$key]), 0, 255));
+        }
+        $old = bp_setting('doc_logo');
+        $oldOk = preg_match('/^doc-logo-[0-9a-f]{12}\.(png|jpg)$/', $old);
+        $msg = 'บันทึกการตั้งค่าเอกสารแล้ว';
+        if (!empty($_POST['logo_del']) && $oldOk) {
+            @unlink(BP_ROOT . '/files/' . $old);
+            bp_setting_set('doc_logo', '');
+            $msg .= ' (ลบตราแล้ว)';
+        }
+        $up = isset($_FILES['logo']) ? $_FILES['logo'] : null;
+        if ($up && $up['error'] == UPLOAD_ERR_OK && is_uploaded_file($up['tmp_name'])) {
+            $info = @getimagesize($up['tmp_name']);
+            $ext = $info && $info[2] == IMAGETYPE_PNG ? 'png' : ($info && $info[2] == IMAGETYPE_JPEG ? 'jpg' : '');
+            if ($ext === '' || $up['size'] > 5 * 1048576) {
+                bp_flash('ตราสถานศึกษาต้องเป็นรูป png หรือ jpg ไม่เกิน 5 MB', 'err');
+                bp_redirect('admin/settings.php#docs');
+            }
+            $name = 'doc-logo-' . bp_random_hex(6) . '.' . $ext;
+            if (@move_uploaded_file($up['tmp_name'], BP_ROOT . '/files/' . $name)) {
+                @chmod(BP_ROOT . '/files/' . $name, 0644);
+                $ne = bp_image_shrink(BP_ROOT . '/files/' . $name, $ext, 800);
+                if ($ne !== '' && $ne !== $ext) { $nn = substr($name, 0, 21) . '.' . $ne; if (@rename(BP_ROOT . '/files/' . $name, BP_ROOT . '/files/' . $nn)) $name = $nn; }
+                if ($oldOk && $old !== $name) @unlink(BP_ROOT . '/files/' . $old);
+                bp_setting_set('doc_logo', $name);
+                $msg .= ' (อัปโหลดตราแล้ว)';
+            } else {
+                bp_flash('บันทึกไฟล์ไม่ได้ — ให้สิทธิ์เขียนโฟลเดอร์ files/ แก่เว็บเซิร์ฟเวอร์', 'err');
+                bp_redirect('admin/settings.php#docs');
+            }
+        }
+        bp_done('settings', $msg);
+        bp_redirect('admin/settings.php#docs');
     } elseif ($act == 'password') {
         $u = bp_row('SELECT * FROM ' . bp_t('user') . ' WHERE id=' . (int)$me['id']);
         $new = (string)$_POST['new'];
@@ -123,6 +172,35 @@ admin_head('ตั้งค่า / ผู้ใช้', 'settings');
     <p><button class="btn" type="submit">บันทึก</button></p>
   </form>
 </div>
+
+<form class="panel" method="post" enctype="multipart/form-data" id="docs">
+  <?php echo bp_csrf_field(); ?><input type="hidden" name="act" value="docs">
+  <h2>เอกสารสำหรับพิมพ์ (PDF แบบทางการ)</h2>
+  <p class="muted small">ชื่อและตำแหน่งที่จะพิมพ์ใต้ช่องลงนามในรายงาน 6/12 เดือน แผนปฏิบัติการ แผนจัดซื้อจัดจ้าง และ สขร.1 — เว้นชื่อว่างไว้ = พิมพ์เป็นเส้นประให้เขียนด้วยมือ</p>
+  <div class="scroll-x"><table class="tbl">
+    <thead><tr><th>ผู้ลงนาม</th><th>ชื่อ-สกุล (มีคำนำหน้า)</th><th>ตำแหน่ง</th></tr></thead>
+    <tbody>
+    <?php foreach (settings_doc_signers() as $k => $s) { ?>
+      <tr><td class="small"><?php echo h($s[0]); ?></td>
+        <td><input name="doc_<?php echo $k; ?>_name" value="<?php echo h(bp_setting('doc_' . $k . '_name')); ?>" placeholder="เช่น นางสาวสมใจ ใฝ่รู้"></td>
+        <td><input name="doc_<?php echo $k; ?>_pos" value="<?php echo h(bp_setting('doc_' . $k . '_pos')); ?>" placeholder="<?php echo h($s[1]); ?>"></td></tr>
+    <?php } ?>
+    </tbody>
+  </table></div>
+  <?php $lg = bp_setting('doc_logo'); $lgOk = $lg !== '' && is_file(BP_ROOT . '/files/' . $lg); ?>
+  <div class="form-row mt">
+    <?php if ($lgOk) { ?><img src="<?php echo h(bp_url('files/' . $lg)); ?>" alt="ตราสถานศึกษา" style="width:72px;height:72px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff"><?php } ?>
+    <label class="fld grow"><span>ตราสถานศึกษา (ไม่บังคับ) — แสดงบนหน้าปกเอกสาร</span><input type="file" name="logo" accept="image/png,image/jpeg">
+      <small>ใช้ตราของสถานศึกษาเอง (png พื้นโปร่งใสดีที่สุด) · ระบบไม่ใส่ตราหน่วยงานอื่นให้</small></label>
+    <?php if ($lgOk) { ?><label class="chk"><input type="checkbox" name="logo_del" value="1"> ลบตรา</label><?php } ?>
+  </div>
+  <p><button class="btn" type="submit">บันทึก</button>
+    <?php $yy = bp_years(true); if ($yy) { $y0 = (int)$yy[0]['year']; ?>
+    <span class="muted small">ดูตัวอย่าง: <a href="<?php echo h(bp_url('doc.php?d=report&y=' . $y0)); ?>" target="_blank" rel="noopener">รายงาน</a> ·
+      <a href="<?php echo h(bp_url('doc.php?d=plan&y=' . $y0)); ?>" target="_blank" rel="noopener">แผนปฏิบัติการ</a> ·
+      <a href="<?php echo h(bp_url('doc.php?d=procure&y=' . $y0)); ?>" target="_blank" rel="noopener">แผนจัดซื้อจัดจ้าง</a> ·
+      <a href="<?php echo h(bp_url('doc.php?d=sk1&y=' . $y0)); ?>" target="_blank" rel="noopener">สขร.1</a></span><?php } ?></p>
+</form>
 
 <div class="panel">
   <h2>ผู้ใช้ระบบ</h2>

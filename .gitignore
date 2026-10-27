@@ -5,3 +5,4 @@ files/books/*
 files/projects/*
 !files/projects/.keep
 backups/
+files/doc-logo-*

@@ -56,7 +56,7 @@ foreach (bp_transfers($yid) as $tr) if (!$tr['doc_date'] || $tr['doc_date'] <= $
     </div>
     <span>
       <a class="btn btn-ghost btn-sm" href="<?php echo h(bp_url('export.php?y=' . (int)$cur['year'])); ?>">ดาวน์โหลด Excel</a>
-      <button class="btn btn-sm" type="button" onclick="window.print()">พิมพ์ / บันทึกเป็น PDF</button>
+      <a class="btn btn-sm" href="<?php echo h(bp_url('doc.php?d=report&y=' . (int)$cur['year'] . '&p=' . $period)); ?>">พิมพ์เอกสารทางการ / PDF</a>
     </span>
   </div>
 

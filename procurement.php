@@ -65,7 +65,7 @@ $base = '?y=' . ($cur ? (int)$cur['year'] : 0);
         <?php foreach (bp_fy_months($cur['year']) as $ym) { ?><option value="<?php echo $ym; ?>" <?php echo $month == $ym ? 'selected' : ''; ?>><?php echo h(bp_thai_month($ym)); ?> (<?php echo isset($byMonth[$ym]) ? $byMonth[$ym] : 0; ?>)</option><?php } ?>
       </select>
       <?php } ?>
-      <button class="btn btn-sm" type="button" onclick="window.print()">พิมพ์ / บันทึกเป็น PDF</button>
+      <a class="btn btn-sm" href="<?php echo h(bp_url($tab == 'plan' ? 'doc.php?d=procure&y=' . (int)$cur['year'] : 'doc.php?d=sk1&y=' . (int)$cur['year'] . ($month ? '&m=' . $month : ''))); ?>">พิมพ์<?php echo $tab == 'plan' ? 'แผน' : ' สขร.1'; ?> (PDF)</a>
     </span>
   </div>
 
