@@ -54,6 +54,7 @@ bp_head('', $ext);
       <p class="eyebrow">ข้อมูลเผยแพร่ต่อสาธารณะ</p>
       <h1><?php echo h(bp_site_name()); ?></h1>
       <p class="lead"><?php echo h(bp_setting('intro')); ?></p>
+      <?php if ($cur && ($asof = bp_year_updated($cur['id']))) { ?><p class="asof">ข้อมูลปี <?php echo (int)$cur['year']; ?> ณ วันที่ <?php echo h(bp_thai_date($asof, false, false)); ?></p><?php } ?>
       <?php if ($years) { ?>
       <div class="year-tabs" role="tablist" aria-label="เลือกปีงบประมาณ">
         <?php foreach ($years as $y) { ?>
@@ -263,7 +264,7 @@ bp_head('', $ext);
         <thead><tr><th>โครงการ</th><th class="hide-sm">หน่วยงาน</th><th class="num">งบอนุมัติ (บาท)</th><th class="num hide-sm">เบิกจ่าย</th><th>สถานะ</th></tr></thead>
         <tbody>
         <?php foreach ($pj['top'] as $p) { $un = $p['unit_id'] && isset($units[$p['unit_id']]) ? $units[$p['unit_id']]['name'] : ''; ?>
-          <tr><td><small class="muted"><?php echo h($p['code']); ?></small> <?php echo h($p['title']); ?><?php if ($un !== '') { ?><small class="muted show-sm"><?php echo h($un); ?></small><?php } ?></td>
+          <tr><td><small class="muted"><?php echo h($p['code']); ?></small> <a href="<?php echo h(bp_url('project.php?id=' . (int)$p['id'])); ?>"><?php echo h($p['title']); ?></a><?php if ($un !== '') { ?><small class="muted show-sm"><?php echo h($un); ?></small><?php } ?></td>
             <td class="hide-sm"><?php echo h($un); ?></td>
             <td class="num"><?php echo bp_money($p['approved']); ?></td>
             <td class="num hide-sm"><?php echo bp_pct($p['spent'], $p['approved'], 1); ?>%</td>
@@ -276,8 +277,8 @@ bp_head('', $ext);
     </div>
     <div class="stack">
       <div class="panel"><h3>งบโครงการตามฝ่าย</h3><div class="chart-box"><canvas id="chDiv" aria-label="กราฟงบโครงการตามฝ่าย"></canvas></div></div>
-      <div class="panel"><h3>แผนการใช้งบรายไตรมาส</h3><div class="chart-box"><canvas id="chQ" aria-label="กราฟแผนการใช้งบรายไตรมาส"></canvas></div>
-        <p class="muted small">งบของโครงการที่ดำเนินหลายไตรมาสเฉลี่ยเท่ากันทุกไตรมาส</p></div>
+      <div class="panel"><h3>เบิกจ่ายสะสมเทียบเป้าหมาย</h3><div class="chart-box"><canvas id="chQ" aria-label="กราฟเบิกจ่ายสะสมเทียบเป้าหมาย"></canvas></div>
+        <p class="muted small">แท่ง = งบตามแผนรายไตรมาส · เส้น = เบิกจ่ายสะสมจริงเทียบเป้าหมาย (%) · <a href="<?php echo h(bp_url('report.php?y=' . (int)$cur['year'])); ?>">ดูรายงานรอบ 6/12 เดือน →</a></p></div>
     </div>
     </div>
   </section>
@@ -378,10 +379,11 @@ foreach ($funds['funds'] as $f) {
     $fundJs['avail'][] = round($f['estimate'] + $f['carry_in'], 2);
     $fundJs['estimate'][] = $f['estimate']; $fundJs['received'][] = $f['received'];
 }
-$pjJs = array('div' => array('labels' => array(), 'approved' => array(), 'spent' => array()), 'q' => array_values($pj['by_q']));
+$pjJs = array('div' => array('labels' => array(), 'approved' => array(), 'spent' => array()), 'q' => array_values($pj['by_q']), 'target' => bp_disb_target(), 'cum' => array());
+if ($cur && $projects) { $pd = bp_period_data($cur['id'], $cur['year'], 12); if ($pd['has_q']) $pjJs['cum'] = bp_cum_pct($pd['q'], $pd['approved'], bp_fy_quarter_done($cur['year'])); }
 foreach ($pj['by_div'] as $dn => $v) { $pjJs['div']['labels'][] = $dn; $pjJs['div']['approved'][] = round($v['approved'], 2); $pjJs['div']['spent'][] = round($v['spent'], 2); }
 echo bp_json(array('share' => $share, 'cmp' => $cmpJs, 'fund' => $fundJs, 'pj' => $pjJs, 'pdfjs' => bp_url('assets/vendor/pdf.min.js'), 'worker' => bp_url('assets/vendor/pdf.worker.min.js')));
 ?>;
 </script>
-<script src="<?php echo h(bp_url('assets/js/app.js')); ?>?v=4"></script>
+<script src="<?php echo h(bp_url('assets/js/app.js')); ?>?v=5"></script>
 <?php bp_foot(); ?>

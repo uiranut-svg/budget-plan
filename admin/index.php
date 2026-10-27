@@ -1,6 +1,6 @@
 <?php
 require dirname(__FILE__) . '/_admin.php';
-bp_require_login();
+bp_require_admin();
 
 $defaultCats = array('งบบุคลากร', 'งบดำเนินงาน', 'งบลงทุน', 'งบเงินอุดหนุน', 'งบรายจ่ายอื่น');
 
@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
             bp_seed_funds($yid);
             bp_seed_align($yid);
-            bp_flash('เพิ่มปีงบประมาณ ' . $year . ' แล้ว (ยังไม่เผยแพร่ — กรอกข้อมูลแล้วติ๊ก "เผยแพร่")');
+            bp_done('year.add', 'เพิ่มปีงบประมาณ ' . $year . ' แล้ว (ยังไม่เผยแพร่ — กรอกข้อมูลแล้วติ๊ก "เผยแพร่")');
             bp_redirect('admin/year.php?id=' . $yid);
         }
     } elseif ($act == 'delete') {
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             bp_query('DELETE FROM ' . bp_t('fund') . ' WHERE year_id=' . $yid);
             bp_query('DELETE FROM ' . bp_t('align') . ' WHERE year_id=' . $yid);
             bp_query('DELETE FROM ' . bp_t('year') . ' WHERE id=' . $yid);
-            bp_flash('ลบปีงบประมาณ ' . $y['year'] . ' แล้ว (เล่มแผนของปีนี้ยังอยู่)');
+            bp_done('year.delete', 'ลบปีงบประมาณ ' . $y['year'] . ' แล้ว (เล่มแผนของปีนี้ยังอยู่)');
         } else {
             bp_flash('ไม่ได้ลบ — พิมพ์ปีให้ตรงเพื่อยืนยัน', 'err');
         }
@@ -89,7 +89,7 @@ admin_head('ปีงบประมาณ', 'index');
         <td class="num"><?php echo bp_money($d['total']); ?></td>
         <td class="num hide-sm"><?php echo count($d['categories']); ?> / <?php echo $n; ?></td>
         <td class="num hide-sm"><?php $pc = bp_row("SELECT COUNT(*) n FROM " . bp_t("project") . " WHERE year_id=" . (int)$y["id"]); echo (int)$pc["n"]; ?></td>
-        <td><?php echo $y['published'] ? '<span class="tag ok">เผยแพร่</span>' : '<span class="tag">ฉบับร่าง</span>'; ?></td>
+        <td><?php echo $y['published'] ? '<span class="tag ok">เผยแพร่</span>' : '<span class="tag">ฉบับร่าง</span>'; $cw = count(bp_checks($y['id'])); if ($cw) echo ' <a class="tag st-doing" href="year.php?id=' . (int)$y['id'] . '" title="จุดที่ควรตรวจสอบ">⚠ ' . $cw . '</a>'; ?><?php $ua = bp_year_updated($y['id']); if ($ua) echo '<small class="muted d-block">แก้ไข ' . h(bp_thai_date($ua)) . '</small>'; ?></td>
         <td class="actions">
           <a class="btn btn-sm" href="year.php?id=<?php echo (int)$y['id']; ?>">แก้ไข</a>
           <form method="post" class="inline" onsubmit="var v=prompt('พิมพ์ปี <?php echo (int)$y['year']; ?> เพื่อยืนยันการลบ (หมวด/รายการ แหล่งเงิน และโครงการของปีนี้จะหายทั้งหมด)');if(!v)return false;this.confirm.value=v;">

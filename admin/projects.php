@@ -1,6 +1,6 @@
 <?php
 require dirname(__FILE__) . '/_admin.php';
-bp_require_login();
+bp_require_admin();
 $y = admin_year_or_back();
 $yid = (int)$y['id'];
 $back = 'admin/projects.php?id=' . $yid;
@@ -13,7 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($p) {
             bp_query('DELETE FROM ' . bp_t('project_align') . ' WHERE project_id=' . $pid);
             bp_query('DELETE FROM ' . bp_t('project') . ' WHERE id=' . $pid);
-            bp_flash('ลบโครงการ "' . $p['title'] . '" แล้ว');
+            admin_touch_year($yid);
+            bp_done('project.delete', 'ลบโครงการ "' . $p['title'] . '" แล้ว');
         }
     } elseif ($act == 'paste') {
         // รหัส | ชื่อโครงการ | หน่วยงาน | แหล่งเงิน | งบที่เสนอ | งบอนุมัติ | เบิกจ่าย | ผู้รับผิดชอบ
@@ -57,7 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $add++;
             }
         }
-        bp_flash('เพิ่ม ' . $add . ' · ปรับปรุง ' . $upd . ' โครงการ' . ($miss ? ' — ไม่พบ: ' . implode(', ', array_keys($miss)) . ' (เว้นว่างไว้ แก้ได้ทีละโครงการ)' : ''), $miss ? 'err' : 'ok');
+        admin_touch_year($yid);
+        bp_done('project.paste', 'เพิ่ม ' . $add . ' · ปรับปรุง ' . $upd . ' โครงการ' . ($miss ? ' — ไม่พบ: ' . implode(', ', array_keys($miss)) . ' (เว้นว่างไว้ แก้ได้ทีละโครงการ)' : ''), $miss ? 'err' : 'ok');
     }
     bp_redirect($back);
 }

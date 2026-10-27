@@ -1,18 +1,10 @@
 <?php
 require dirname(__FILE__) . '/_admin.php';
-bp_require_login();
+bp_require_admin();
 
 $dir = BP_ROOT . '/files/books/';
 
-function bp_ini_bytes($v)
-{
-    $v = trim((string)$v);
-    $n = (float)$v;
-    $u = strtolower(substr($v, -1));
-    if ($u == 'g') $n *= 1073741824; elseif ($u == 'm') $n *= 1048576; elseif ($u == 'k') $n *= 1024;
-    return (int)$n;
-}
-$maxUp = min(bp_ini_bytes(ini_get('upload_max_filesize')), bp_ini_bytes(ini_get('post_max_size')));
+$maxUp = bp_max_upload();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $act = isset($_POST['act']) ? $_POST['act'] : '';
@@ -40,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     if ($title === '') $title = preg_replace('/\.pdf$/i', '', $orig);
                     bp_query('INSERT INTO ' . bp_t('book') . ' (year_id,title,file,orig_name,size,created_at) VALUES ('
                         . ($yearId ? $yearId : 'NULL') . ',' . q(mb_substr($title, 0, 255)) . ',' . q($name) . ',' . q(mb_substr($orig, 0, 255)) . ',' . (int)filesize($dir . $name) . ",'" . date('Y-m-d H:i:s') . "')");
-                    bp_flash('อัปโหลด "' . $title . '" แล้ว');
+                    bp_done('book.upload', 'อัปโหลด "' . $title . '" แล้ว');
                 }
             }
         }
@@ -48,13 +40,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $id = (int)$_POST['id'];
         $title = trim((string)$_POST['title']);
         if ($title !== '') bp_query('UPDATE ' . bp_t('book') . ' SET title=' . q(mb_substr($title, 0, 255)) . ',year_id=' . ($yearId ? $yearId : 'NULL') . ' WHERE id=' . $id);
-        bp_flash('บันทึกแล้ว');
+        bp_done('book.edit', 'บันทึกแล้ว');
     } elseif ($act == 'delete') {
         $b = bp_row('SELECT * FROM ' . bp_t('book') . ' WHERE id=' . (int)$_POST['id']);
         if ($b) {
             if (preg_match('/^[0-9a-f]{24}\.pdf$/', $b['file']) && is_file($dir . $b['file'])) @unlink($dir . $b['file']);
             bp_query('DELETE FROM ' . bp_t('book') . ' WHERE id=' . (int)$b['id']);
-            bp_flash('ลบ "' . $b['title'] . '" แล้ว');
+            bp_done('book.delete', 'ลบ "' . $b['title'] . '" แล้ว');
         }
     }
     bp_redirect('admin/books.php');

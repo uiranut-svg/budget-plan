@@ -131,7 +131,9 @@ bp_head('โครงการ' . ($cur ? ' ปี ' . (int)$cur['year'] : ''));
               <dt>ความสอดคล้อง</dt><dd><ul><?php foreach ($grp as $sn => $list) { ?><li><b><?php echo h($sn); ?>:</b> <?php echo h(implode(' · ', $list)); ?></li><?php } ?></ul></dd>
               <?php } ?>
               <?php if ($p['note'] !== '') { ?><dt>หมายเหตุ</dt><dd><?php echo h($p['note']); ?></dd><?php } ?>
+              <?php if (trim((string)$p['result']) !== '') { ?><dt>ผลการดำเนินงาน</dt><dd><?php echo $p['result_pct'] !== null ? '<b>' . (int)$p['result_pct'] . '%</b> ' : ''; ?><?php echo h($p['result']); ?></dd><?php } ?>
             </dl>
+            <p><a class="btn btn-sm" href="<?php echo h(bp_url('project.php?id=' . (int)$p['id'])); ?>">ดูหน้ารายละเอียดโครงการ รูปกิจกรรม และเอกสาร →</a></p>
           </td>
         </tr>
       <?php } ?>

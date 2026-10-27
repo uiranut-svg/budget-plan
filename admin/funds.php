@@ -1,6 +1,6 @@
 <?php
 require dirname(__FILE__) . '/_admin.php';
-bp_require_login();
+bp_require_admin();
 $y = admin_year_or_back();
 $yid = (int)$y['id'];
 
@@ -54,7 +54,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
     if ($ok) {
         bp_query('COMMIT');
-        bp_flash('บันทึกแหล่งเงินปี ' . $y['year'] . ' แล้ว (' . count($keep) . ' รายการ)');
+        admin_touch_year($yid);
+        bp_done('funds', 'บันทึกแหล่งเงินปี ' . $y['year'] . ' แล้ว (' . count($keep) . ' รายการ)');
     } else {
         bp_query('ROLLBACK');
         bp_flash('บันทึกไม่สำเร็จ ข้อมูลเดิมยังอยู่', 'err');

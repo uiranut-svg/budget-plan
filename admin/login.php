@@ -21,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             session_regenerate_id(true);
             $_SESSION['uid'] = (int)$u['id'];
             $_SESSION['csrf'] = bp_random_hex(16);
+            bp_log('login', 'เข้าสู่ระบบ');
             bp_redirect('admin/index.php');
         }
         bp_query('INSERT INTO ' . bp_t('login_fail') . ' (ip,at) VALUES (' . q($ip) . ",'" . date('Y-m-d H:i:s') . "')");
@@ -32,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>เข้าสู่ระบบ · <?php echo h(bp_site_name()); ?></title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="<?php echo h(bp_url('assets/css/app.css')); ?>?v=8"></head>
+<link rel="stylesheet" href="<?php echo h(bp_url('assets/css/app.css')); ?>?v=9"></head>
 <body class="setup">
 <main class="setup-box narrow">
   <h1>เข้าสู่ระบบผู้ดูแล</h1>

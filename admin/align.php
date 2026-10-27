@@ -1,6 +1,6 @@
 <?php
 require dirname(__FILE__) . '/_admin.php';
-bp_require_login();
+bp_require_admin();
 $y = admin_year_or_back();
 $yid = (int)$y['id'];
 
@@ -45,7 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         bp_query('DELETE FROM ' . bp_t('align') . ' WHERE id IN (' . implode(',', $del) . ')');
     }
     bp_query('COMMIT');
-    bp_flash('บันทึกความสอดคล้องปี ' . $y['year'] . ' แล้ว');
+    admin_touch_year($yid);
+    bp_done('align', 'บันทึกความสอดคล้องปี ' . $y['year'] . ' แล้ว');
     bp_redirect('admin/align.php?id=' . $yid);
 }
 /** ใช้ id เดิมถ้าชื่อเดิมอยู่ใต้ตัวแม่เดิม (โครงการที่ผูกไว้ไม่หลุด) */

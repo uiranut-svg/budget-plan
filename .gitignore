@@ -2,3 +2,6 @@ inc/config.php
 inc/setup.allow
 files/books/*
 !files/books/.keep
+files/projects/*
+!files/projects/.keep
+backups/

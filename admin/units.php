@@ -1,6 +1,6 @@
 <?php
 require dirname(__FILE__) . '/_admin.php';
-bp_require_login();
+bp_require_admin();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['act']) && $_POST['act'] == 'seed') {
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         bp_query('DELETE FROM ' . bp_t('unit') . ' WHERE id IN (' . implode(',', $del) . ')');
     }
     bp_query('COMMIT');
-    bp_flash('บันทึกหน่วยงานแล้ว (' . count($keep) . ' หน่วยงาน' . ($del ? ', ลบ ' . count($del) : '') . ')');
+    bp_done('units', 'บันทึกหน่วยงานแล้ว (' . count($keep) . ' หน่วยงาน' . ($del ? ', ลบ ' . count($del) : '') . ')');
     bp_redirect('admin/units.php');
 }
 

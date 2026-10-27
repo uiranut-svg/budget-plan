@@ -1,6 +1,6 @@
 <?php
 require dirname(__FILE__) . '/_admin.php';
-bp_require_login();
+bp_require_admin();
 
 $yid = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $y = bp_row('SELECT * FROM ' . bp_t('year') . ' WHERE id=' . $yid);
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
     if ($ok) {
         bp_query('COMMIT');
-        bp_flash('บันทึกปีงบประมาณ ' . $y['year'] . ' แล้ว (' . count($cats) . ' หมวด, ' . $nItems . ' รายการ)' . ($pub ? '' : ' — ยังเป็นฉบับร่าง'));
+        bp_done('year.save', 'บันทึกปีงบประมาณ ' . $y['year'] . ' แล้ว (' . count($cats) . ' หมวด, ' . $nItems . ' รายการ)' . ($pub ? '' : ' — ยังเป็นฉบับร่าง'));
     } else {
         bp_query('ROLLBACK');
         bp_flash('บันทึกไม่สำเร็จ ข้อมูลเดิมยังอยู่', 'err');

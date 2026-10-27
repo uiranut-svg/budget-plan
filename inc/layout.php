@@ -8,7 +8,7 @@ function bp_head($title, $extraHead = '')
         . '<title>' . h($title !== '' ? $title . ' · ' . $site : $site) . '</title>'
         . '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
         . '<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">'
-        . '<link rel="stylesheet" href="' . h(bp_url('assets/css/app.css')) . '?v=8">' . $extraHead . '</head><body>'
+        . '<link rel="stylesheet" href="' . h(bp_url('assets/css/app.css')) . '?v=9">' . $extraHead . '</head><body>'
         . '<header class="topbar"><div class="wrap topbar-in">'
         . '<a class="brand" href="' . h(bp_url('index.php')) . '"><span class="brand-mark" aria-hidden="true">฿</span><span><b>' . h($site) . '</b>'
         . ($school !== '' ? '<small>' . h($school) . '</small>' : '') . '</span></a>'
@@ -24,10 +24,11 @@ function bp_nav_links()
     $menu = array(
         array('summary', $home . '#summary', 'ภาพรวม'),
         array('funds', $home . '#funds', 'แหล่งเงิน'),
-        array('detail', $home . '#detail', 'รายละเอียดงบ'),
+        array('detail', $home . '#detail', 'งบประมาณ'),
         array('projects', bp_url('projects.php') . ($y ? '?y=' . $y : ''), 'โครงการ'),
+        array('procure', bp_url('procurement.php') . ($y ? '?y=' . $y : ''), 'จัดซื้อจัดจ้าง'),
+        array('report', bp_url('report.php') . ($y ? '?y=' . $y : ''), 'รายงานผล'),
         array('strategy', $home . '#strategy', 'ยุทธศาสตร์'),
-        array('compare', $home . '#compare', 'เปรียบเทียบ'),
         array('books', $home . '#books', 'เล่มแผน'),
     );
     $o = '';

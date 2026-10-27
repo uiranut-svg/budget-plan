@@ -126,4 +126,73 @@ return array(
         PRIMARY KEY (`project_id`,`align_id`),
         KEY `align_id` (`align_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+    // ---------- รุ่น 3 ----------
+    // รายงานผลรอบ 6 / 12 เดือน (ข้อความสรุป ปัญหา ข้อเสนอแนะ)
+    "CREATE TABLE IF NOT EXISTS `{p}report` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `year_id` int(11) NOT NULL,
+        `period` tinyint(4) NOT NULL,
+        `summary` text,
+        `problems` text,
+        `suggestions` text,
+        `published` tinyint(1) NOT NULL DEFAULT 0,
+        `updated_at` datetime DEFAULT NULL,
+        PRIMARY KEY (`id`),
+        UNIQUE KEY `year_period` (`year_id`,`period`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+    // แผน / ผลการจัดซื้อจัดจ้าง (แบบ สขร.1)
+    "CREATE TABLE IF NOT EXISTS `{p}procure` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `year_id` int(11) NOT NULL,
+        `project_id` int(11) DEFAULT NULL,
+        `seq` int(11) NOT NULL DEFAULT 0,
+        `title` varchar(500) NOT NULL,
+        `method` varchar(64) NOT NULL DEFAULT '',
+        `budget` decimal(15,2) NOT NULL DEFAULT 0,
+        `ref_price` decimal(15,2) NOT NULL DEFAULT 0,
+        `plan_month` varchar(7) NOT NULL DEFAULT '',
+        `bidders` text,
+        `vendor` varchar(255) NOT NULL DEFAULT '',
+        `contract_amount` decimal(15,2) NOT NULL DEFAULT 0,
+        `contract_no` varchar(64) NOT NULL DEFAULT '',
+        `contract_date` date DEFAULT NULL,
+        `reason` varchar(255) NOT NULL DEFAULT '',
+        `status` varchar(16) NOT NULL DEFAULT 'plan',
+        `note` varchar(500) NOT NULL DEFAULT '',
+        `updated_at` datetime DEFAULT NULL,
+        PRIMARY KEY (`id`),
+        KEY `year_id` (`year_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+    // รูป / เอกสารของโครงการ
+    "CREATE TABLE IF NOT EXISTS `{p}project_file` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `project_id` int(11) NOT NULL,
+        `kind` varchar(8) NOT NULL DEFAULT 'doc',
+        `file` varchar(64) NOT NULL,
+        `orig_name` varchar(255) NOT NULL DEFAULT '',
+        `title` varchar(255) NOT NULL DEFAULT '',
+        `size` int(11) NOT NULL DEFAULT 0,
+        `created_at` datetime DEFAULT NULL,
+        PRIMARY KEY (`id`),
+        KEY `project_id` (`project_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+    // บันทึกการแก้ไขข้อมูล
+    "CREATE TABLE IF NOT EXISTS `{p}log` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `user_id` int(11) DEFAULT NULL,
+        `username` varchar(64) NOT NULL DEFAULT '',
+        `action` varchar(64) NOT NULL,
+        `detail` varchar(500) NOT NULL DEFAULT '',
+        `ip` varchar(45) NOT NULL DEFAULT '',
+        `at` datetime NOT NULL,
+        PRIMARY KEY (`id`),
+        KEY `at` (`at`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+    // ผู้กรอกข้อมูลของหน่วยงาน ↔ หน่วยงานที่ดูแล
+    "CREATE TABLE IF NOT EXISTS `{p}user_unit` (
+        `user_id` int(11) NOT NULL,
+        `unit_id` int(11) NOT NULL,
+        PRIMARY KEY (`user_id`,`unit_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
 );

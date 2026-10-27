@@ -107,12 +107,20 @@
         type: 'bar',
         data: {
           labels: ['ไตรมาส 1 (ต.ค.–ธ.ค.)', 'ไตรมาส 2 (ม.ค.–มี.ค.)', 'ไตรมาส 3 (เม.ย.–มิ.ย.)', 'ไตรมาส 4 (ก.ค.–ก.ย.)'],
-          datasets: [{ label: 'งบตามแผน', data: pj.q, backgroundColor: ['#7c0d12', '#b3141b', '#d9480f', '#c9a227'], borderRadius: 6 }]
+          datasets: [
+            { type: 'line', label: 'เบิกจ่ายสะสมจริง (%)', data: pj.cum && pj.cum.length ? pj.cum : [], yAxisID: 'p', borderColor: '#1e7a3c', backgroundColor: '#1e7a3c', borderWidth: 3, tension: .2, order: 0 },
+            { type: 'line', label: 'เป้าหมายสะสม (%)', data: pj.target || [], yAxisID: 'p', borderColor: '#c9a227', backgroundColor: '#c9a227', borderDash: [6, 5], borderWidth: 2, order: 1 },
+            { label: 'งบตามแผน (บาท)', data: pj.q, backgroundColor: 'rgba(179,20,27,.75)', borderRadius: 6, yAxisID: 'y', order: 2 }
+          ]
         },
         options: {
           maintainAspectRatio: false,
-          plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (t) { return ' ' + money(t.raw) + ' บาท'; } } } },
-          scales: { y: { grid: { color: grid }, ticks: { callback: tickM } }, x: { grid: { display: false } } }
+          plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } }, tooltip: { callbacks: { label: function (t) { return t.dataset.yAxisID === 'p' ? ' ' + t.dataset.label + ': ' + t.raw + '%' : ' ' + money(t.raw) + ' บาท'; } } } },
+          scales: {
+            y: { grid: { color: grid }, ticks: { callback: tickM } },
+            p: { position: 'right', min: 0, max: 100, grid: { display: false }, ticks: { callback: function (v) { return v + '%'; } } },
+            x: { grid: { display: false } }
+          }
         }
       });
     }

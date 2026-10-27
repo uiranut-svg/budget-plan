@@ -9,7 +9,7 @@ header('X-Frame-Options: SAMEORIGIN');
 function setup_page($body)
 {
     echo '<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
-        . '<title>ติดตั้งระบบ</title><link rel="stylesheet" href="assets/css/app.css?v=8"></head><body class="setup">'
+        . '<title>ติดตั้งระบบ</title><link rel="stylesheet" href="assets/css/app.css?v=9"></head><body class="setup">'
         . '<main class="setup-box">' . $body . '</main></body></html>';
     exit;
 }
@@ -76,7 +76,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 'school_name' => $v['school_name'],
                 'intro' => 'ข้อมูลแผนปฏิบัติราชการ งบประมาณรายจ่ายประจำปี จำแนกตามหมวดงบประมาณ เพื่อเผยแพร่ต่อสาธารณะ',
                 'unit_name' => 'งานวางแผนและงบประมาณ',
-                'schema_ver' => (string)BP_SCHEMA_VER,
             );
             foreach ($set as $k => $val) {
                 mysqli_query($db, "INSERT INTO `{$p}setting` (name,value) VALUES ('" . mysqli_real_escape_string($db, $k) . "','" . mysqli_real_escape_string($db, $val) . "')");
