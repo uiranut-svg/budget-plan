@@ -18,6 +18,8 @@ function bp_https()
 {
     if (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) != 'off') return true;
     if (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) return true;
+    // หลัง Cloudflare Tunnel: ผู้ใช้เข้า https แต่เครื่องเห็นเป็น http
+    if (bp_from_local_proxy() && isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https') return true;
     return false;
 }
 function bp_redirect($path)
@@ -194,7 +196,18 @@ function bp_flash($msg = null, $type = 'ok')
 }
 function bp_client_ip()
 {
-    return isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+    $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+    // ผ่าน Cloudflare Tunnel: คำขอมาจาก 127.0.0.1 ทั้งหมด → ใช้ IP จริงจาก header (เชื่อเฉพาะเมื่อมาจากเครื่องตัวเอง)
+    if (bp_from_local_proxy() && !empty($_SERVER['HTTP_CF_CONNECTING_IP']) && filter_var($_SERVER['HTTP_CF_CONNECTING_IP'], FILTER_VALIDATE_IP)) {
+        return $_SERVER['HTTP_CF_CONNECTING_IP'];
+    }
+    return $ip;
+}
+/** คำขอมาจากเครื่องตัวเอง (เช่น cloudflared) และมี header ของ proxy */
+function bp_from_local_proxy()
+{
+    $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+    return ($ip === '127.0.0.1' || $ip === '::1') && (isset($_SERVER['HTTP_CF_CONNECTING_IP']) || isset($_SERVER['HTTP_X_FORWARDED_PROTO']));
 }
 
 // ---------- ข้อมูลงบประมาณ ----------

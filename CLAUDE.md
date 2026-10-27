@@ -25,6 +25,12 @@
 - รหัส admin ทดสอบอยู่ในไฟล์ scratchpad ของ session ที่สร้าง (ไม่อยู่ในโปรเจกต์) — ลืม = ตั้งใหม่ด้วย PHP `password_hash` ลง `bp_user`
 - ทดสอบภาพ: Node + Edge headless คุย CDP (แผงเบราว์เซอร์ที่ถูกซ่อนไม่วาดภาพเคลื่อนไหวของ StPageFlip)
 
+## เว็บสาธิต (ตั้ง 2026-10-27)
+- https://demo.school-activity.in.th = เครื่องนี้ผ่าน Cloudflare Tunnel (service `cloudflared` แบบ token, ingress ตั้งใน dashboard → `http://localhost:8080`) · vhost `127.0.0.1:8080` ใน `C:
+mpp\apache\confxtra\httpd-vhosts.conf` เปลี่ยนจาก SAM (`htdocs/stdac`) เป็น budget-plan (สำรอง `.bak-20261027-before-budget-plan`) · บล็อก setup.php/phpmyadmin บน vhost นี้
+- ดู ingress ปัจจุบัน: `curl http://127.0.0.1:20241/config` · Apache รันจาก XAMPP Control Panel → รีสตาร์ทแบบ graceful: PowerShell `[Threading.EventWaitHandle]::OpenExisting('ap<PID แม่ของ httpd>_restart').Set()`
+- หลัง tunnel ทุกคำขอมาจาก 127.0.0.1: `bp_client_ip()` ใช้ `CF-Connecting-IP`, `bp_https()` ใช้ `X-Forwarded-Proto` (เชื่อเฉพาะเมื่อมาจาก loopback — `bp_from_local_proxy()`)
+
 ## สถานะ (พักงาน 2026-10-26 — ผู้ใช้จะกลับมาทำต่อ)
 - รุ่นแรกเสร็จและทดสอบแล้วบนเครื่องพัฒนา (commit แรก `1e5e852`): หน้าสาธารณะ, E-book, admin ครบ · ยังไม่ติดตั้งที่วิทยาลัยไหน · ยังไม่ push GitHub · ยังไม่ทดสอบบน PHP 5.4 จริง (ผ่านแค่ตัวตรวจโค้ด)
 - รอผู้ใช้ตัดสิน: ชื่อระบบ/ชื่อโฟลเดอร์จริง · จะทำข้อไหนต่อจากรายการด้านล่าง · เล่มแผนจริงของวิทยาลัย (ตอนนี้ใช้คู่มือ SAM ทดสอบ)
