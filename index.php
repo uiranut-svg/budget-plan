@@ -49,14 +49,28 @@ $BP_NAV_YEAR = $cur ? (int)$cur['year'] : 0;
 bp_head('', $ext);
 ?>
 <section class="hero">
-  <div class="wrap">
-    <p class="eyebrow">ข้อมูลเผยแพร่ต่อสาธารณะ</p>
-    <h1><?php echo h(bp_site_name()); ?></h1>
-    <p class="lead"><?php echo h(bp_setting('intro')); ?></p>
-    <?php if ($years) { ?>
-    <div class="year-tabs" role="tablist" aria-label="เลือกปีงบประมาณ">
-      <?php foreach ($years as $y) { ?>
-        <a role="tab" class="<?php echo ($cur && $y['id'] == $cur['id']) ? 'on' : ''; ?>" href="?y=<?php echo (int)$y['year']; ?>#summary">ปีงบประมาณ <?php echo (int)$y['year']; ?></a>
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">ข้อมูลเผยแพร่ต่อสาธารณะ</p>
+      <h1><?php echo h(bp_site_name()); ?></h1>
+      <p class="lead"><?php echo h(bp_setting('intro')); ?></p>
+      <?php if ($years) { ?>
+      <div class="year-tabs" role="tablist" aria-label="เลือกปีงบประมาณ">
+        <?php foreach ($years as $y) { ?>
+          <a role="tab" class="<?php echo ($cur && $y['id'] == $cur['id']) ? 'on' : ''; ?>" href="?y=<?php echo (int)$y['year']; ?>">ปีงบประมาณ <?php echo (int)$y['year']; ?></a>
+        <?php } ?>
+      </div>
+      <?php } ?>
+    </div>
+    <?php if ($cur) { ?>
+    <div class="hero-stats" aria-label="ตัวเลขสำคัญ ปี <?php echo (int)$cur['year']; ?>">
+      <a class="hstat" href="#summary"><span>งบประมาณรายจ่าย</span><b><?php echo bp_money($data['total'], 0); ?></b><small>บาท · <?php echo count($data['categories']); ?> หมวด</small></a>
+      <?php if ($funds['funds']) { ?>
+      <a class="hstat" href="#funds"><span>รายรับ (ประมาณการ + ยกมา)</span><b><?php echo bp_money($funds['sum']['estimate'] + $funds['sum']['carry_in'], 0); ?></b><small>รับจริงแล้ว <?php echo bp_pct($funds['sum']['received'], $funds['sum']['estimate'], 1); ?>%</small></a>
+      <?php } ?>
+      <?php if ($projects) { ?>
+      <a class="hstat" href="#projects"><span>โครงการ</span><b><?php echo number_format($pj['n']); ?> <small>โครงการ</small></b><small>งบอนุมัติ <?php echo bp_money($pj['approved'], 0); ?> บาท</small></a>
+      <a class="hstat" href="#projects"><span>เบิกจ่ายโครงการ</span><b><?php echo bp_pct($pj['spent'], $pj['approved'], 1); ?>%</b><small>แล้วเสร็จ <?php echo $pj['n_done']; ?> จาก <?php echo $pj['n']; ?> โครงการ</small></a>
       <?php } ?>
     </div>
     <?php } ?>
@@ -73,7 +87,8 @@ bp_head('', $ext);
       <h2>ภาพรวมงบประมาณ ปี <?php echo (int)$cur['year']; ?></h2>
       <?php if ($cur['title'] !== '') { ?><p class="muted"><?php echo h($cur['title']); ?></p><?php } ?>
     </div>
-    <div class="cards">
+    <?php $nc = count($data["categories"]); ?>
+    <div class="cards<?php echo $nc && $nc <= 6 ? " cat-cards" : ""; ?>" style="--n:<?php echo max(1, $nc); ?>">
       <div class="card card-total">
         <span class="card-label">งบประมาณรวมทั้งสิ้น</span>
         <span class="card-num"><?php echo bp_money($data['total']); ?></span>
@@ -129,16 +144,15 @@ bp_head('', $ext);
       <div class="card" style="--c:var(--brand)"><span class="card-label">เงินที่ใช้ได้ (ยกมา + รับจริง)</span><span class="card-num sm"><?php echo bp_money($avail); ?></span>
         <span class="card-unit">บาท<?php if ($data['total'] > 0) echo ' · งบรายจ่าย ' . bp_pct($data['total'], $avail) . '% ของเงินที่ใช้ได้'; ?></span></div>
     </div>
-    <div class="grid2">
-      <div class="panel"><h3>สัดส่วนตามแหล่งเงิน</h3><div class="chart-box"><canvas id="chFund" aria-label="กราฟสัดส่วนแหล่งเงิน"></canvas></div></div>
-      <div class="panel"><h3>ประมาณการเทียบรับจริง</h3><div class="chart-box"><canvas id="chFundRecv" aria-label="กราฟประมาณการเทียบรับจริง"></canvas></div></div>
-    </div>
+    <div class="layout-2">
+    <div>
+    <div class="tbl-tools"><button type="button" class="btn btn-sm btn-ghost js-fold" data-target="tblFund">พับรายการย่อย</button></div>
     <div class="panel flush scroll-x">
-      <table class="tbl">
+      <table class="tbl" id="tblFund">
         <thead><tr><th>แหล่งเงิน</th><th class="num">ประมาณการ</th><th class="num hide-sm">ยกมา</th><th class="num">รับจริง</th><th class="num hide-sm">ร้อยละรับ</th></tr></thead>
         <?php foreach ($funds['funds'] as $f) { ?>
         <tbody class="cat">
-          <tr class="cat-row<?php echo $f['children'] ? ' has-items' : ''; ?>" <?php echo $f['children'] ? 'tabindex="0" aria-expanded="false"' : ''; ?>>
+          <tr class="cat-row<?php echo $f['children'] ? ' has-items' : ''; ?>" <?php echo $f['children'] ? 'tabindex="0" aria-expanded="true"' : ''; ?>>
             <td><span class="sw" style="background:<?php echo h($f['color']); ?>"></span><b><?php echo h($f['name']); ?></b>
               <?php if ($f['children']) { ?><span class="cnt"><?php echo count($f['children']); ?> รายการ</span><span class="caret">▾</span><?php } ?></td>
             <td class="num"><b><?php echo bp_money($f['estimate']); ?></b></td>
@@ -147,7 +161,7 @@ bp_head('', $ext);
             <td class="num hide-sm"><?php echo $f['estimate'] > 0 ? bp_pct($f['received'], $f['estimate']) : '–'; ?></td>
           </tr>
           <?php foreach ($f['children'] as $ch) { ?>
-          <tr class="item-row" hidden>
+          <tr class="item-row">
             <td><?php echo h($ch['name']); ?><?php if ($ch['note'] !== '') { ?><small class="muted d-block"><?php echo h($ch['note']); ?></small><?php } ?></td>
             <td class="num"><?php echo bp_money($ch['estimate']); ?></td>
             <td class="num hide-sm"><?php echo $ch['carry_in'] ? bp_money($ch['carry_in']) : '<span class="muted">–</span>'; ?></td>
@@ -160,7 +174,12 @@ bp_head('', $ext);
         <tfoot><tr><th>รวม</th><th class="num"><?php echo bp_money($fs['estimate']); ?></th><th class="num hide-sm"><?php echo bp_money($fs['carry_in']); ?></th><th class="num"><?php echo bp_money($fs['received']); ?></th><th class="num hide-sm"><?php echo bp_pct($fs['received'], $fs['estimate']); ?></th></tr></tfoot>
       </table>
     </div>
-    <p class="muted small">กดที่แหล่งเงินเพื่อดูรายการย่อย</p>
+    </div>
+    <div class="stack">
+      <div class="panel"><h3>สัดส่วนตามแหล่งเงิน</h3><div class="chart-box"><canvas id="chFund" aria-label="กราฟสัดส่วนแหล่งเงิน"></canvas></div></div>
+      <div class="panel"><h3>ประมาณการเทียบรับจริง</h3><div class="chart-box"><canvas id="chFundRecv" aria-label="กราฟประมาณการเทียบรับจริง"></canvas></div></div>
+    </div>
+    </div>
   </section>
   <?php } ?>
 
@@ -169,12 +188,15 @@ bp_head('', $ext);
       <h2>รายละเอียดงบประมาณ ปี <?php echo (int)$cur['year']; ?></h2>
       <div class="search"><input type="search" id="q" placeholder="ค้นหารายการ / โครงการ / หน่วยงาน" aria-label="ค้นหา"></div>
     </div>
+    <div class="layout-2">
+    <div>
+    <div class="tbl-tools"><button type="button" class="btn btn-sm btn-ghost js-fold" data-target="tblDetail">พับรายการย่อย</button></div>
     <div class="panel flush">
       <table class="tbl" id="tblDetail">
         <thead><tr><th>หมวด / รายการ</th><th class="hide-sm">หน่วยงาน</th><th class="num">จำนวนเงิน (บาท)</th><th class="num">ร้อยละ</th></tr></thead>
         <?php foreach ($data['categories'] as $ci => $c) { ?>
         <tbody class="cat" data-cat="<?php echo $ci; ?>">
-          <tr class="cat-row<?php echo $c['items'] ? ' has-items' : ''; ?>" <?php echo $c['items'] ? 'tabindex="0" aria-expanded="false"' : ''; ?>>
+          <tr class="cat-row<?php echo $c['items'] ? ' has-items' : ''; ?>" <?php echo $c['items'] ? 'tabindex="0" aria-expanded="true"' : ''; ?>>
             <td><span class="sw" style="background:<?php echo h($c['color']); ?>"></span><b><?php echo h($c['name']); ?></b>
               <?php if ($c['items']) { ?><span class="cnt"><?php echo count($c['items']); ?> รายการ</span><span class="caret">▾</span><?php } ?></td>
             <td class="hide-sm"></td>
@@ -182,7 +204,7 @@ bp_head('', $ext);
             <td class="num"><?php echo bp_pct($c['total'], $data['total']); ?></td>
           </tr>
           <?php foreach ($c['items'] as $it) { ?>
-          <tr class="item-row" hidden>
+          <tr class="item-row">
             <td><?php echo h($it['name']); ?><?php if ($it['note'] !== '') { ?><small class="muted d-block"><?php echo h($it['note']); ?></small><?php } ?>
               <?php if ($it['department'] !== '') { ?><small class="muted show-sm"><?php echo h($it['department']); ?></small><?php } ?></td>
             <td class="hide-sm"><?php echo h($it['department']); ?></td>
@@ -195,10 +217,11 @@ bp_head('', $ext);
         <tfoot><tr><th>รวมทั้งสิ้น</th><th class="hide-sm"></th><th class="num"><?php echo bp_money($data['total']); ?></th><th class="num">100.00</th></tr></tfoot>
       </table>
     </div>
-    <p class="muted small">กดที่หมวดเพื่อดูรายการย่อย</p>
+    </div>
 
     <?php if (count($depts) > 1 || (count($depts) == 1 && !isset($depts['ไม่ระบุหน่วยงาน']))) { ?>
-    <h3 class="sub">ยอดตามหน่วยงาน</h3>
+    <div>
+    <h3 class="tbl-tools-h">ยอดตามหน่วยงาน (จากรายการย่อย)</h3>
     <div class="panel flush">
       <table class="tbl">
         <thead><tr><th>หน่วยงาน</th><th class="num">จำนวนเงิน (บาท)</th><th class="num">ร้อยละ</th></tr></thead>
@@ -209,7 +232,9 @@ bp_head('', $ext);
         </tbody>
       </table>
     </div>
+    </div>
     <?php } ?>
+    </div>
   </section>
 
   <?php if ($projects) { $st = bp_project_statuses(); $units = bp_units(); $purl = bp_url('projects.php?y=' . (int)$cur['year']); ?>
@@ -230,12 +255,9 @@ bp_head('', $ext);
         <span class="card-unit">โครงการ · <?php echo bp_pct($pj['n_done'], $pj['n'], 0); ?>%</span>
         <span class="bar"><i style="width:<?php echo bp_pct($pj['n_done'], $pj['n'], 1); ?>%"></i></span></div>
     </div>
-    <div class="grid2">
-      <div class="panel"><h3>งบโครงการตามฝ่าย</h3><div class="chart-box"><canvas id="chDiv" aria-label="กราฟงบโครงการตามฝ่าย"></canvas></div></div>
-      <div class="panel"><h3>แผนการใช้งบรายไตรมาส</h3><div class="chart-box"><canvas id="chQ" aria-label="กราฟแผนการใช้งบรายไตรมาส"></canvas></div>
-        <p class="muted small">งบของโครงการที่ดำเนินหลายไตรมาสเฉลี่ยเท่ากันทุกไตรมาส</p></div>
-    </div>
-    <h3 class="sub">โครงการงบประมาณสูงสุด</h3>
+    <div class="layout-2">
+    <div>
+    <h3 class="tbl-tools-h">โครงการงบประมาณสูงสุด</h3>
     <div class="panel flush">
       <table class="tbl">
         <thead><tr><th>โครงการ</th><th class="hide-sm">หน่วยงาน</th><th class="num">งบอนุมัติ (บาท)</th><th class="num hide-sm">เบิกจ่าย</th><th>สถานะ</th></tr></thead>
@@ -251,6 +273,13 @@ bp_head('', $ext);
       </table>
     </div>
     <p><a class="btn" href="<?php echo h($purl); ?>">ดูโครงการทั้งหมด <?php echo count($projects); ?> โครงการ พร้อมค้นหา/กรอง →</a></p>
+    </div>
+    <div class="stack">
+      <div class="panel"><h3>งบโครงการตามฝ่าย</h3><div class="chart-box"><canvas id="chDiv" aria-label="กราฟงบโครงการตามฝ่าย"></canvas></div></div>
+      <div class="panel"><h3>แผนการใช้งบรายไตรมาส</h3><div class="chart-box"><canvas id="chQ" aria-label="กราฟแผนการใช้งบรายไตรมาส"></canvas></div>
+        <p class="muted small">งบของโครงการที่ดำเนินหลายไตรมาสเฉลี่ยเท่ากันทุกไตรมาส</p></div>
+    </div>
+    </div>
   </section>
   <?php } ?>
 
@@ -290,6 +319,7 @@ bp_head('', $ext);
   <?php if (count($cmpYears) >= 2) { $ys = array_keys($cmpTotal); $yA = $ys[count($ys) - 2]; $yB = $ys[count($ys) - 1]; ?>
   <section id="compare" class="section">
     <div class="section-head"><h2>เปรียบเทียบงบประมาณรายปี</h2></div>
+    <div class="layout-2 even">
     <div class="panel"><div class="chart-box tall"><canvas id="chCmp" aria-label="กราฟเปรียบเทียบรายปี"></canvas></div></div>
     <div class="panel flush scroll-x">
       <table class="tbl">
@@ -310,6 +340,7 @@ bp_head('', $ext);
         <tfoot><tr><th>รวมทั้งสิ้น</th><?php foreach ($ys as $yy) { ?><th class="num"><?php echo bp_money($cmpTotal[$yy]); ?></th><?php } ?>
           <th class="num"><?php $a = $cmpTotal[$yA]; $b = $cmpTotal[$yB]; if ($a > 0) { $p = ($b - $a) * 100 / $a; echo '<span class="chg ' . ($p >= 0 ? 'up' : 'down') . '">' . ($p >= 0 ? '▲ ' : '▼ ') . number_format(abs($p), 2) . '%</span>'; } ?></th></tr></tfoot>
       </table>
+    </div>
     </div>
   </section>
   <?php } ?>
@@ -352,5 +383,5 @@ foreach ($pj['by_div'] as $dn => $v) { $pjJs['div']['labels'][] = $dn; $pjJs['di
 echo bp_json(array('share' => $share, 'cmp' => $cmpJs, 'fund' => $fundJs, 'pj' => $pjJs, 'pdfjs' => bp_url('assets/vendor/pdf.min.js'), 'worker' => bp_url('assets/vendor/pdf.worker.min.js')));
 ?>;
 </script>
-<script src="<?php echo h(bp_url('assets/js/app.js')); ?>?v=3"></script>
+<script src="<?php echo h(bp_url('assets/js/app.js')); ?>?v=4"></script>
 <?php bp_foot(); ?>

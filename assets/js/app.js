@@ -153,6 +153,17 @@
     r.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(r); } });
   });
 
+  // ---------- พับ/กางรายการย่อยทั้งตาราง (เริ่มต้น = กางทั้งหมด) ----------
+  var foldState = {};
+  document.querySelectorAll('.js-fold').forEach(function (b) {
+    var id = b.getAttribute('data-target');
+    b.addEventListener('click', function () {
+      foldState[id] = !foldState[id];
+      document.querySelectorAll('#' + id + ' .cat-row.has-items').forEach(function (r) { toggle(r, !foldState[id]); });
+      b.textContent = foldState[id] ? 'กางรายการย่อยทั้งหมด' : 'พับรายการย่อย';
+    });
+  });
+
   // ---------- แท็บชุดความสอดคล้อง ----------
   document.querySelectorAll('.seg-btn[data-set]').forEach(function (b) {
     b.addEventListener('click', function () {
@@ -169,7 +180,7 @@
     document.querySelectorAll('#tblDetail tbody.cat').forEach(function (tb) {
       var cat = tb.querySelector('.cat-row');
       var items = tb.querySelectorAll('.item-row');
-      if (!t) { tb.hidden = false; toggle(cat, false); items.forEach(function (i) { i.classList.remove('hit'); }); return; }
+      if (!t) { tb.hidden = false; if (items.length) toggle(cat, !foldState.tblDetail); items.forEach(function (i) { i.classList.remove('hit'); }); return; }
       var catHit = cat.textContent.toLowerCase().indexOf(t) >= 0, any = false;
       items.forEach(function (i) {
         var hit = i.textContent.toLowerCase().indexOf(t) >= 0;

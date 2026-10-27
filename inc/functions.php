@@ -427,7 +427,7 @@ function bp_project_summary($projects)
     }
     uasort($s['by_div'], 'bp_cmp_approved');
     usort($s['top'], 'bp_cmp_approved');
-    $s['top'] = array_slice($s['top'], 0, 5);
+    $s['top'] = array_slice($s['top'], 0, 8);
     return $s;
 }
 function bp_cmp_approved($a, $b)

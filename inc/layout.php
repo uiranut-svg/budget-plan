@@ -8,7 +8,7 @@ function bp_head($title, $extraHead = '')
         . '<title>' . h($title !== '' ? $title . ' · ' . $site : $site) . '</title>'
         . '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
         . '<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">'
-        . '<link rel="stylesheet" href="' . h(bp_url('assets/css/app.css')) . '?v=6">' . $extraHead . '</head><body>'
+        . '<link rel="stylesheet" href="' . h(bp_url('assets/css/app.css')) . '?v=8">' . $extraHead . '</head><body>'
         . '<header class="topbar"><div class="wrap topbar-in">'
         . '<a class="brand" href="' . h(bp_url('index.php')) . '"><span class="brand-mark" aria-hidden="true">฿</span><span><b>' . h($site) . '</b>'
         . ($school !== '' ? '<small>' . h($school) . '</small>' : '') . '</span></a>'
